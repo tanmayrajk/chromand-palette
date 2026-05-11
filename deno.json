@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "build": "deno bundle src/background.ts > dist/background.js && deno bundle src/content.ts > dist/content.js"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  },
+  "compilerOptions": {
+    "lib": ["dom"],
+    "types": ["npm:@types/chrome"]
+  }
+}

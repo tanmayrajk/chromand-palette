@@ -1,0 +1,15 @@
+{
+    "manifest_version": 3,
+    "name": "chromand palette",
+    "version": "0.67",
+    "permissions": ["tabs"],
+    "background": {
+        "service_worker": "dist/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["dist/content.js"]
+        }
+    ]
+}
