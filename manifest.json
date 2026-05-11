@@ -9,7 +9,16 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": ["dist/content.js"]
+            "js": ["dist/content.js"],
+            "css": ["dist/content.css"]
         }
-    ]
+    ],
+    "commands": {
+        "toggle-palette": {
+            "suggested_key": {
+                "default": "Alt+K"
+            },
+            "description": "toggle the palette duh"
+        }
+    }
 }

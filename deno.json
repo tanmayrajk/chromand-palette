@@ -6,7 +6,7 @@
     "@std/assert": "jsr:@std/assert@1"
   },
   "compilerOptions": {
-    "lib": ["dom"],
+    "lib": ["dom", "deno.ns", "deno.window"],
     "types": ["npm:@types/chrome"]
   }
 }
