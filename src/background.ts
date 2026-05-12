@@ -1,3 +1,5 @@
+/// <reference types="npm:@types/chrome" />
+
 chrome.commands.onCommand.addListener((command) => {
     if (command === 'toggle-palette') {
         console.log("hi lol");

@@ -1,3 +1,5 @@
+/// <reference types="npm:@types/chrome" />
+
 const palette = h("div", ["palette", "hidden"], h("input", ["palette-input"]), h("div", ["palette-suggestions"]));
 const paletteInput = palette.querySelector(".palette-input") as HTMLInputElement;
 const paletteSuggestions = palette.querySelector(".palette-suggestions") as HTMLDivElement;
