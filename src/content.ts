@@ -35,7 +35,7 @@ document.addEventListener("click", (e) => {
 })
 
 paletteInput.addEventListener("input", () => {
-    const query = paletteInput.value.toLowerCase().trim();
+    const query = paletteInput.value;
     const filteredSuggestions = filterSuggestions(query);
     paletteSuggestions.innerHTML = "";
     filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || ""));
@@ -48,13 +48,14 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
         activeIndex = (activeIndex + 1) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
     }
     else if (e.key === "ArrowUp") {
         e.preventDefault();
         activeIndex = (activeIndex - 1 + suggestions.length) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
     }
-    paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
 })
 
 function togglePalette() {
@@ -62,6 +63,9 @@ function togglePalette() {
     if (a) {
         paletteInput.value = "";
         paletteSuggestions.innerHTML = "";
+        activeIndex = -1;
+        const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
+        suggestions.forEach(s => s.classList.remove("cp-active"));
     } else {
         paletteInput.focus();
         fetchTabs().then(tabs => {
@@ -72,16 +76,12 @@ function togglePalette() {
 }
 
 function filterSuggestions(query: string) {
-    // const currentSuggestions = (Array.from(paletteSuggestions.children) as HTMLDivElement[]).map(suggestionEl => ({
-    //     title: suggestionEl.dataset.title || "",
-    //     url: suggestionEl.dataset.url || ""
-    // }));
     const currentSuggestions = openTabs.map(tab => ({
         title: tab.title || "",
         url: tab.url || "",
         id: tab.id || -1
     }));
-    const filteredSuggestions = currentSuggestions.filter(suggestion => suggestion.title?.toLowerCase().includes(query.toLowerCase().trim() || ""));
+    const filteredSuggestions = currentSuggestions.filter(suggestion => suggestion.title?.toLowerCase().includes(query.toLowerCase().trim() || "") || suggestion.url?.toLowerCase().includes(query.toLowerCase().trim() || ""));
     return filteredSuggestions;
 }
 
