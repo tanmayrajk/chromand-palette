@@ -3,12 +3,15 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: black;
+    background-color: #3c3e3e;
+    padding: 0px 5px;
     color: white;
     z-index: 6767;
-    width: 300px;
+    width: 670px;
     display:flex;
     flex-direction: column;
+    border-radius: 7px;
+    opacity: 1;
 }
 
 .cp-hidden {
@@ -16,17 +19,42 @@
 }
 
 .cp-palette-input {
-    width: 100%;
+    /* width: 100%; */
+    font-size: medium;
+    border: 0;
+    padding: 10px 15px;
+    padding-top: 12px;
+    outline: none;
+    background-color: #3c3e3e;
+    border-radius: 7px;
+    color: white;
+    opacity: 1;
 }
 
 .cp-palette-suggestions {
+    /* margin-top: 10px;
+    margin-left: 5px; */
     display: flex;
     flex-direction: column;
+    background-color: transparent;
 }
 
 .cp-suggestion {
+    padding: 5px 15px;
     color: white;
+    background-color: transparent;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    opacity: 1;
+}
+
+.cp-suggestion:first-child {
+    padding-top: 10px;
+    border-radius: 7px;
+    background-color: #4F5151;
+}
+
+.cp-suggestion:last-child {
+    padding-bottom: 10px;
 }

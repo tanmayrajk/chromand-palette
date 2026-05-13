@@ -2,6 +2,7 @@
 
 const palette = h("div", ["cp-palette", "cp-hidden"], h("input", ["cp-palette-input"]), h("div", ["cp-palette-suggestions"]));
 const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
+paletteInput.placeholder = "Search...";
 const paletteSuggestions = palette.querySelector(".cp-palette-suggestions") as HTMLDivElement;
 
 document.body.appendChild(palette);
