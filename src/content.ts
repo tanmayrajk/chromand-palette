@@ -1,8 +1,8 @@
 /// <reference types="npm:@types/chrome" />
 
-const palette = h("div", ["palette", "hidden"], h("input", ["palette-input"]), h("div", ["palette-suggestions"]));
-const paletteInput = palette.querySelector(".palette-input") as HTMLInputElement;
-const paletteSuggestions = palette.querySelector(".palette-suggestions") as HTMLDivElement;
+const palette = h("div", ["cp-palette", "cp-hidden"], h("input", ["cp-palette-input"]), h("div", ["cp-palette-suggestions"]));
+const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
+const paletteSuggestions = palette.querySelector(".cp-palette-suggestions") as HTMLDivElement;
 
 document.body.appendChild(palette);
 
@@ -10,6 +10,19 @@ let currentTabs: chrome.tabs.Tab[] = [];
 
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle-palette') {
+        togglePalette();
+    }
+})
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !palette.classList.contains("cp-hidden")) {
+        togglePalette();
+    }
+});
+
+document.addEventListener("click", (e) => {
+    const target = e.target as Node;
+    if (!palette.contains(target) && !palette.classList.contains("cp-hidden")) {
         togglePalette();
     }
 })
@@ -23,7 +36,7 @@ paletteInput.addEventListener("input", () => {
 
 
 function togglePalette() {
-    const a = palette.classList.toggle("hidden");
+    const a = palette.classList.toggle("cp-hidden");
     if (a) {
         paletteInput.value = "";
         paletteSuggestions.innerHTML = "";
@@ -37,12 +50,12 @@ function togglePalette() {
 }
 
 function filterSuggestions(query: string) {
-    const filteredSuggestions = currentTabs.filter(tab => tab.title?.toLowerCase().includes(query.toLowerCase()));
+    const filteredSuggestions = currentTabs.filter(tab => tab.title?.toLowerCase().includes(query.toLowerCase().trim() || ""));
     return filteredSuggestions;
 }
 
 function addSuggestion(suggestion: string) {
-    const suggestionEl = h("div", ["suggestion"], document.createTextNode(suggestion));
+    const suggestionEl = h("div", ["cp-suggestion"], document.createTextNode(suggestion));
     paletteSuggestions.appendChild(suggestionEl);
 }
 
@@ -54,9 +67,9 @@ const fetchTabs = (): Promise<chrome.tabs.Tab[]> => {
     })
 }
 
-function h(tag: string, classNames: string[], ...children: (HTMLElement | Text)[]): HTMLElement {
+function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)[]): HTMLElement {
     const el = document.createElement(tag);
-    el.classList.add(...classNames);
+    if (classNames) el.classList.add(...classNames);
     children.forEach(child => el.appendChild(child));
     return el;
 }
