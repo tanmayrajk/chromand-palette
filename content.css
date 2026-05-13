@@ -4,7 +4,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: #3c3e3e;
-    padding: 0px 5px;
+    padding: 5px;
     color: white;
     z-index: 6767;
     width: 670px;
@@ -19,11 +19,9 @@
 }
 
 .cp-palette-input {
-    /* width: 100%; */
     font-size: medium;
     border: 0;
     padding: 10px 15px;
-    padding-top: 12px;
     outline: none;
     background-color: #3c3e3e;
     border-radius: 7px;
@@ -51,10 +49,13 @@
 
 .cp-suggestion:first-child {
     padding-top: 10px;
-    border-radius: 7px;
-    background-color: #4F5151;
 }
 
 .cp-suggestion:last-child {
     padding-bottom: 10px;
+}
+
+.cp-active {
+    border-radius: 7px;
+    background-color: #4F5151;
 }
