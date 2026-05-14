@@ -30,8 +30,6 @@
 }
 
 .cp-palette-suggestions {
-    /* margin-top: 10px;
-    margin-left: 5px; */
     display: flex;
     flex-direction: column;
     background-color: transparent;
@@ -45,6 +43,19 @@
     overflow: hidden;
     white-space: nowrap;
     opacity: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cp-suggestion-title {
+    font-size: medium;
+    font-weight: 500;
+}
+
+.cp-suggestion-url {
+    font-size: small;
+    color: #b0b0b0;
 }
 
 .cp-suggestion:first-child {

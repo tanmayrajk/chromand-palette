@@ -7,11 +7,6 @@ const paletteSuggestions = palette.querySelector(".cp-palette-suggestions") as H
 
 document.body.appendChild(palette);
 
-// interface SuggestionInfo {
-//     title: string;
-//     url: string;
-// }
-
 let openTabs: chrome.tabs.Tab[] = [];
 let activeIndex = -1;
 
@@ -39,6 +34,14 @@ paletteInput.addEventListener("input", () => {
     const filteredSuggestions = filterSuggestions(query);
     paletteSuggestions.innerHTML = "";
     filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || ""));
+    const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
+    if (query.trim() != "" && suggestions.length > 0) {
+        activeIndex = 0;
+        suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
+        paletteInput.focus();
+        paletteInput.select();
+    }
 })
 
 document.addEventListener("keydown", (e) => {
@@ -49,29 +52,33 @@ document.addEventListener("keydown", (e) => {
         activeIndex = (activeIndex + 1) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
         paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
+        paletteInput.focus();
+
     }
     else if (e.key === "ArrowUp") {
         e.preventDefault();
         activeIndex = (activeIndex - 1 + suggestions.length) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
         paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
+        paletteInput.focus();
     }
 })
 
 function togglePalette() {
-    const a = palette.classList.toggle("cp-hidden");
-    if (a) {
-        paletteInput.value = "";
-        paletteSuggestions.innerHTML = "";
-        activeIndex = -1;
-        const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
-        suggestions.forEach(s => s.classList.remove("cp-active"));
-    } else {
+    if (palette.classList.contains("cp-hidden")) {
+        palette.classList.remove("cp-hidden");
         paletteInput.focus();
         fetchTabs().then(tabs => {
             openTabs = tabs;
             tabs.forEach(tab => addSuggestionToPalette(tab.title || "no title", tab.url || "", tab.id || -1));
         });
+    } else {
+        palette.classList.add("cp-hidden");
+        paletteInput.value = "";
+        paletteSuggestions.innerHTML = "";
+        activeIndex = -1;
+        const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
+        suggestions.forEach(s => s.classList.remove("cp-active"));
     }
 }
 
@@ -86,7 +93,7 @@ function filterSuggestions(query: string) {
 }
 
 function addSuggestionToPalette(title: string, url: string, id: number = -1) {
-    const suggestionEl = h("div", ["cp-suggestion"], document.createTextNode(title));
+    const suggestionEl = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(title)), h("span", ["cp-suggestion-url"], document.createTextNode(url)));
     suggestionEl.dataset.title = title;
     suggestionEl.dataset.url = url;
     suggestionEl.dataset.id = id.toString();
