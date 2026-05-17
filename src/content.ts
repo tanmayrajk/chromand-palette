@@ -33,11 +33,16 @@ paletteInput.addEventListener("input", () => {
     const query = paletteInput.value;
     const filteredSuggestions = filterSuggestions(query);
     paletteSuggestions.innerHTML = "";
-    filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || ""));
+    filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || "", suggestion.id || -1));
     if (query.trim() != "") {
         const googleSearch = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(`Google ${query}`)));
         googleSearch.dataset.url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-        paletteSuggestions.append(googleSearch);
+        paletteSuggestions.prepend(googleSearch);
+
+        searchHistory(query).then(d => {
+            console.log(d)
+            d.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || "", -1));
+        })
     }
     const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
     if (query.trim() != "" && suggestions.length > 0) {
@@ -120,8 +125,13 @@ function addSuggestionToPalette(title: string, url: string, id: number = -1) {
     const urlObj = new URL(url);
     const displayUrl = urlObj.protocol == "http:" || urlObj.protocol == "https:" ? urlObj.hostname + urlObj.port + urlObj.pathname + urlObj.search + urlObj.hash : url;
     const suggestionEl = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(title)), h("span", ["cp-suggestion-url"], document.createTextNode(displayUrl)));
+    if (id !== -1) {
+        const switchToTabEl = h("div", ["cp-switch-to-tab"])
+        switchToTabEl.innerHTML = 'switch to tab'
+        suggestionEl.append(switchToTabEl)
+    }
     suggestionEl.dataset.title = title;
-    suggestionEl.dataset.url = displayUrl;
+    suggestionEl.dataset.url = url;
     suggestionEl.dataset.id = id.toString();
     paletteSuggestions.appendChild(suggestionEl);
 }
@@ -130,6 +140,14 @@ const fetchTabs = (): Promise<chrome.tabs.Tab[]> => {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: 'request-tabs' }, (res) => {
             resolve(res.tabs);
+        });
+    })
+}
+
+const searchHistory = (query: string): Promise<{ title?: string; url?: string; }[]> => {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({ action: 'search-history', query }, (res) => {
+            resolve(res.data);
         });
     })
 }
@@ -148,3 +166,11 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
     children.forEach(child => el.appendChild(child));
     return el;
 }
+
+// function urlizeUrl(url: string): string {
+//     if (!/^https?:\/\//.test(url)) {
+//         return "https://" + url;
+//     }
+
+//     return url;
+// }

@@ -27,6 +27,7 @@
     border-radius: 7px;
     color: white;
     opacity: 1;
+    margin-bottom: 5px;
 }
 
 .cp-palette-suggestions {
@@ -36,7 +37,7 @@
 }
 
 .cp-suggestion {
-    padding: 5px 15px;
+    padding: 7px 7px 7px 15px;
     color: white;
     background-color: transparent;
     text-overflow: ellipsis;
@@ -62,15 +63,20 @@
     white-space: nowrap;
 }
 
-.cp-suggestion:first-child {
-    padding-top: 10px;
-}
-
-.cp-suggestion:last-child {
-    padding-bottom: 10px;
-}
-
 .cp-active {
     border-radius: 7px;
     background-color: #4F5151;
+}
+
+.cp-switch-to-tab {
+    background-color: #eeeeee;
+    color: #3c3e3e;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 7px;
+    border-radius: 7px;
+    font-size: smaller;
+    font-weight: 500;
 }
