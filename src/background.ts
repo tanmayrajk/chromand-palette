@@ -17,9 +17,44 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         });
 
         return true;
+    } else if (msg.action === 'change-tab') {
+        const tabId = msg.tabId;
+        chrome.tabs.update(tabId, { active: true });
+    } else if (msg.action === 'open-url') {
+        const url = msg.url;
+        chrome.tabs.create({ url });
     }
 })
 
+// async function search(query: string, count: number) {
+//     const openTabs = await new Promise<chrome.tabs.Tab[]>(resolve => {
+//         chrome.tabs.query({}, (tabs) => {
+//             resolve(tabs);
+//         })
+//     })
+//     const history = await new Promise<{ title?: string, url?: string }[]>(resolve => {
+//         chrome.history.search({ text: query, maxResults: count }, (res) => {
+//             resolve(res.map(r => ({ title: r.title, url: r.url })))
+//         })
+//     })
+
+//     const combinedResults = [...openTabs.map(tab => ({ title: tab.title || "", url: tab.url || "", id: tab.id || -1 })), ...history];
+//     const filteredResults = combinedResults.filter(result => result.title?.toLowerCase().includes(query.toLowerCase().trim() || "") || result.url?.toLowerCase().includes(query.toLowerCase().trim() || ""));
+//     return filteredResults;
+// }
+
+// async function allHistory() {
+//     const t = new Date();
+//     const history = await new Promise<{ title?: string, url?: string }[]>(resolve => {
+//         chrome.history.search({ text: "", startTime: 0, maxResults: 999999999 }, (res) => {
+//             resolve(res.map(r => ({ title: r.title, url: r.url })))
+//         })
+//     })
+//     console.log((new Date().getTime() - t.getTime()) / 1000);
+//     console.log(history.length);
+// }
+
+// allHistory();
 
 
 // chrome.tabs.query({}, (tabs) => {

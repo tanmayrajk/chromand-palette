@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "chromand palette",
     "version": "0.67",
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "history"],
     "background": {
         "service_worker": "dist/background.js"
     },

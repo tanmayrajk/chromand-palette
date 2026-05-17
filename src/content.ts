@@ -34,13 +34,15 @@ paletteInput.addEventListener("input", () => {
     const filteredSuggestions = filterSuggestions(query);
     paletteSuggestions.innerHTML = "";
     filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || ""));
+    if (query.trim() != "") {
+        const googleSearch = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(`Google ${query}`)));
+        googleSearch.dataset.url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        paletteSuggestions.append(googleSearch);
+    }
     const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
     if (query.trim() != "" && suggestions.length > 0) {
         activeIndex = 0;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
-        paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
-        paletteInput.focus();
-        paletteInput.select();
     }
 })
 
@@ -64,14 +66,36 @@ document.addEventListener("keydown", (e) => {
     }
 })
 
+document.addEventListener("keydown", (e) => {
+    if (palette.classList.contains("cp-hidden")) return;
+    if (e.key === "Enter") {
+        e.preventDefault();
+        const suggestions = Array.from(paletteSuggestions.children) as HTMLDivElement[];
+        const selectedSuggestion = suggestions[activeIndex];
+        if (selectedSuggestion) {
+            const url = selectedSuggestion.dataset.url;
+            const id = parseInt(selectedSuggestion.dataset.id || "-1");
+            togglePalette();
+            if (id !== -1) {
+                chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
+            } else if (url) {
+                chrome.runtime.sendMessage({ action: 'open-url', url });
+            }
+        }
+    }
+})
+
 function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
-        palette.classList.remove("cp-hidden");
-        paletteInput.focus();
         fetchTabs().then(tabs => {
             openTabs = tabs;
             tabs.forEach(tab => addSuggestionToPalette(tab.title || "no title", tab.url || "", tab.id || -1));
         });
+        // fetchHistory("", 10).then(history => {
+        //     console.log(history);
+        // })
+        palette.classList.remove("cp-hidden");
+        paletteInput.focus();
     } else {
         palette.classList.add("cp-hidden");
         paletteInput.value = "";
@@ -93,9 +117,11 @@ function filterSuggestions(query: string) {
 }
 
 function addSuggestionToPalette(title: string, url: string, id: number = -1) {
-    const suggestionEl = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(title)), h("span", ["cp-suggestion-url"], document.createTextNode(url)));
+    const urlObj = new URL(url);
+    const displayUrl = urlObj.protocol == "http:" || urlObj.protocol == "https:" ? urlObj.hostname + urlObj.port + urlObj.pathname + urlObj.search + urlObj.hash : url;
+    const suggestionEl = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(title)), h("span", ["cp-suggestion-url"], document.createTextNode(displayUrl)));
     suggestionEl.dataset.title = title;
-    suggestionEl.dataset.url = url;
+    suggestionEl.dataset.url = displayUrl;
     suggestionEl.dataset.id = id.toString();
     paletteSuggestions.appendChild(suggestionEl);
 }
@@ -107,6 +133,14 @@ const fetchTabs = (): Promise<chrome.tabs.Tab[]> => {
         });
     })
 }
+
+// const fetchHistory = (query: string, count: number): Promise<{ title?: string, url?: string }[]> => {
+//     return new Promise((resolve) => {
+//         chrome.runtime.sendMessage({ action: 'request-history', count, query}, (res) => {
+//             resolve(res.history);
+//         });
+//     })
+// }
 
 function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)[]): HTMLElement {
     const el = document.createElement(tag);

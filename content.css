@@ -56,6 +56,10 @@
 .cp-suggestion-url {
     font-size: small;
     color: #b0b0b0;
+    width: 90%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .cp-suggestion:first-child {
