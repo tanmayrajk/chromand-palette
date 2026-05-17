@@ -35,7 +35,7 @@ paletteInput.addEventListener("input", () => {
     paletteSuggestions.innerHTML = "";
     filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || "", suggestion.id || -1));
     if (query.trim() != "") {
-        const googleSearch = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(`Google ${query}`)));
+        const googleSearch = h("div", ["cp-suggestion"], h("div", ["cp-suggestion-content"], h("div", ["cp-suggestion-title"], document.createTextNode(`Google ${query}`))));
         googleSearch.dataset.url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
         paletteSuggestions.prepend(googleSearch);
 
@@ -58,6 +58,9 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
         activeIndex = (activeIndex + 1) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        suggestions[activeIndex]?.scrollIntoView({
+            block: "nearest",
+        });
         paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
         paletteInput.focus();
 
@@ -66,6 +69,9 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
         activeIndex = (activeIndex - 1 + suggestions.length) % suggestions.length;
         suggestions.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        suggestions[activeIndex]?.scrollIntoView({
+            block: "nearest",
+        });
         paletteInput.value = suggestions[activeIndex]?.dataset.url || "";
         paletteInput.focus();
     }
@@ -124,7 +130,7 @@ function filterSuggestions(query: string) {
 function addSuggestionToPalette(title: string, url: string, id: number = -1) {
     const urlObj = new URL(url);
     const displayUrl = urlObj.protocol == "http:" || urlObj.protocol == "https:" ? urlObj.hostname + urlObj.port + urlObj.pathname + urlObj.search + urlObj.hash : url;
-    const suggestionEl = h("div", ["cp-suggestion"], h("span", ["cp-suggestion-title"], document.createTextNode(title)), h("span", ["cp-suggestion-url"], document.createTextNode(displayUrl)));
+    const suggestionEl = h("div", ["cp-suggestion"], h("div", ["cp-suggestion-content"], h("div", ["cp-suggestion-title"], document.createTextNode(title)), h("div", ["cp-suggestion-url"], document.createTextNode(displayUrl))));
     if (id !== -1) {
         const switchToTabEl = h("div", ["cp-switch-to-tab"])
         switchToTabEl.innerHTML = 'switch to tab'
