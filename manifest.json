@@ -1,24 +1,30 @@
 {
-    "manifest_version": 3,
-    "name": "chromand palette",
-    "version": "0.67",
-    "permissions": ["tabs", "history"],
-    "background": {
-        "service_worker": "dist/background.js"
-    },
-    "content_scripts": [
-        {
-            "matches": ["<all_urls>"],
-            "js": ["dist/content.js"],
-            "css": ["content.css"]
-        }
-    ],
-    "commands": {
-        "toggle-palette": {
-            "suggested_key": {
-                "default": "Alt+K"
-            },
-            "description": "toggle the palette duh"
-        }
+  "manifest_version": 3,
+  "name": "chromand palette",
+  "version": "0.67",
+  "permissions": ["tabs", "history", "favicon"],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "css": ["content.css"]
     }
+  ],
+  "commands": {
+    "toggle-palette": {
+      "suggested_key": {
+        "default": "Alt+K"
+      },
+      "description": "toggle the palette duh"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["_favicon/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

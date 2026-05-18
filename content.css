@@ -39,7 +39,7 @@
 }
 
 .cp-suggestion {
-    padding: 7px 7px 7px 15px;
+    padding: 7px 15px;
     color: white;
     background-color: transparent;
     opacity: 1;
@@ -85,4 +85,9 @@
     border-radius: 7px;
     font-size: smaller;
     font-weight: 500;
+}
+
+.cp-suggestion-favicon {
+    width: 30px;
+    padding-right: 5px;
 }

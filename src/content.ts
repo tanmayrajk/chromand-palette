@@ -130,12 +130,14 @@ function filterSuggestions(query: string) {
 function addSuggestionToPalette(title: string, url: string, id: number = -1) {
     const urlObj = new URL(url);
     const displayUrl = urlObj.protocol == "http:" || urlObj.protocol == "https:" ? urlObj.hostname + urlObj.port + urlObj.pathname + urlObj.search + urlObj.hash : url;
-    const suggestionEl = h("div", ["cp-suggestion"], h("div", ["cp-suggestion-content"], h("div", ["cp-suggestion-title"], document.createTextNode(title)), h("div", ["cp-suggestion-url"], document.createTextNode(displayUrl))));
+    const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`;
+    const suggestionEl = h("div", ["cp-suggestion"], h("img", ["cp-suggestion-favicon"]), h("div", ["cp-suggestion-content"], h("div", ["cp-suggestion-title"], document.createTextNode(title)), h("div", ["cp-suggestion-url"], document.createTextNode(displayUrl))));
     if (id !== -1) {
         const switchToTabEl = h("div", ["cp-switch-to-tab"])
         switchToTabEl.innerHTML = 'switch to tab'
         suggestionEl.append(switchToTabEl)
     }
+    suggestionEl.getElementsByTagName("img")[0].src = faviconUrl;
     suggestionEl.dataset.title = title;
     suggestionEl.dataset.url = url;
     suggestionEl.dataset.id = id.toString();
