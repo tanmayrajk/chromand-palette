@@ -1,4 +1,11 @@
 /// <reference types="npm:@types/chrome" />
+import Fuse from "fuse.js"
+
+interface historyItem {
+    title: string,
+    url: string,
+    visitCount: number,
+}
 
 chrome.commands.onCommand.addListener((command) => {
     if (command === 'toggle-palette') {
@@ -10,14 +17,7 @@ chrome.commands.onCommand.addListener((command) => {
 })
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg.action === 'request-tabs') {
-        console.log("yaya")
-        chrome.tabs.query({}, (tabs) => {
-            sendResponse({ tabs })
-        });
-
-        return true;
-    } else if (msg.action === 'change-tab') {
+    if (msg.action === 'change-tab') {
         const tabId = msg.tabId;
         chrome.tabs.update(tabId, { active: true });
         return true;
@@ -25,55 +25,77 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const url = msg.url;
         chrome.tabs.create({ url });
         return true;
-    } else if (msg.action === 'search-history') {
-        searchHistory(msg.query, 10).then(data => {
-            sendResponse({ data })
-        })
-        return true
     }
 })
 
-function searchHistory(query: string, count: number) {
-    return new Promise<{ title?: string, url?: string }[]>(resolve => {
-        chrome.history.search({ text: query, maxResults: count }, (res) => {
-            resolve(res.map(r => ({ title: r.title, url: r.url })))
+chrome.runtime.onInstalled.addListener(async () => {
+    const history = await getHistory(999999999);
+    console.log(history.length)
+    await storeInIndexedDB(history)
+})
+
+
+function getHistory(count: number) {
+    return new Promise<historyItem[]>(resolve => {
+        chrome.history.search({ text: "", startTime: 0, maxResults: count }, (res) => {
+            resolve(res.map(r => ({ title: r.title ?? "", url: r.url ?? "", visitCount: r.visitCount ?? 1 })))
         })
     })
 }
 
-// async function search(query: string, count: number) {
-//     const openTabs = await new Promise<chrome.tabs.Tab[]>(resolve => {
-//         chrome.tabs.query({}, (tabs) => {
-//             resolve(tabs);
-//         })
-//     })
-//     const history = await new Promise<{ title?: string, url?: string }[]>(resolve => {
-//         chrome.history.search({ text: query, maxResults: count }, (res) => {
-//             resolve(res.map(r => ({ title: r.title, url: r.url })))
-//         })
-//     })
+function loadFromIndexedDB() {
+    return new Promise<historyItem[]>((resolve, reject) => {
+        const request = indexedDB.open("browserHistory", 1);
 
-//     const combinedResults = [...openTabs.map(tab => ({ title: tab.title || "", url: tab.url || "", id: tab.id || -1 })), ...history];
-//     const filteredResults = combinedResults.filter(result => result.title?.toLowerCase().includes(query.toLowerCase().trim() || "") || result.url?.toLowerCase().includes(query.toLowerCase().trim() || ""));
-//     return filteredResults;
-// }
+        request.onerror = () => reject(request.error)
 
-// async function allHistory() {
-//     const t = new Date();
-//     const history = await new Promise<{ title?: string, url?: string }[]>(resolve => {
-//         chrome.history.search({ text: "", startTime: 0, maxResults: 999999999 }, (res) => {
-//             resolve(res.map(r => ({ title: r.title, url: r.url })))
-//         })
-//     })
-//     console.log((new Date().getTime() - t.getTime()) / 1000);
-//     console.log(history.length);
-// }
+        request.onsuccess = () => {
+            const db = request.result
+            const tx = db.transaction("history", "readonly")
+            const store = tx.objectStore("history")
 
-// allHistory();
+            const getAllRequest = store.getAll()
 
+            getAllRequest.onerror = () => reject(getAllRequest.error)
 
-// chrome.tabs.query({}, (tabs) => {
-//     for (const tab of tabs) {
-//         console.log(tab.url);
-//     }
-// })
+            getAllRequest.onsuccess = () => {
+                resolve(getAllRequest.result as historyItem[])
+            }
+        }
+    })
+}
+
+function storeInIndexedDB(history: historyItem[]) {
+    return new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open("browserHistory", 1);
+        
+        request.onupgradeneeded = () => {
+            const db = request.result;
+
+            if (!db.objectStoreNames.contains("history")) {
+                db.createObjectStore("history", {
+                    keyPath: "url"
+                })
+            }
+        }
+
+        request.onerror = () => reject(request.error)
+
+        request.onsuccess = () => {
+            const db = request.result
+            const tx = db.transaction("history", "readwrite")
+            const store = tx.objectStore("history");
+
+            history.forEach(item => {
+                store.put(item)
+            })
+
+            tx.oncomplete = () => {
+                console.log("history stored");
+                resolve();
+            }
+
+            tx.onerror = () => reject(tx.error)
+        }
+    })
+}

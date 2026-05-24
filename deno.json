@@ -3,7 +3,8 @@
     "build": "deno bundle src/background.ts > dist/background.js && deno bundle src/content.ts > dist/content.js"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "fuse.js": "npm:fuse.js@^7.3.0"
   },
   "compilerOptions": {
     "lib": ["dom", "deno.ns", "deno.window"],
