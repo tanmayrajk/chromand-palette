@@ -31,23 +31,18 @@ document.addEventListener("click", (e) => {
 paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
     const searchRes = await search(query)
-    console.log(searchRes)
     paletteItems.innerHTML = "";
+    if (query.trim() != "") {
+        if (query.trim().length > 2) {
+            searchRes.unshift({ title: `search ${query.trim()} on google`, url: `https://www.google.com/search?q=${encodeURI(query.trim())}`, id: -1 })
+        } else {
+            searchRes.splice(1, 0, { title: `search ${query.trim()} on google`, url: `https://www.google.com/search?q=${encodeURI(query.trim())}`, id: -1 })
+        }
+    }
     searchRes.forEach(item => {
         const id = item.id ? item.id : -1
         addItemToPalette(item.title ?? "", item.url ?? "", id)
     })
-    // filteredSuggestions.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || "", suggestion.id || -1));
-    // if (query.trim() != "") {
-    //     const googleSearch = h("div", ["cp-suggestion"], h("div", ["cp-suggestion-content"], h("div", ["cp-suggestion-title"], document.createTextNode(`Google ${query}`))));
-    //     googleSearch.dataset.url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-    //     paletteSuggestions.prepend(googleSearch);
-
-    //     searchHistory(query).then(d => {
-    //         console.log(d)
-    //         d.forEach(suggestion => addSuggestionToPalette(suggestion.title || "no title", suggestion.url || "", -1));
-    //     })
-    // }
     const items = Array.from(paletteItems.children) as HTMLDivElement[];
     if (query.trim() != "" && items.length > 0) {
         activeIndex = 0;
@@ -116,6 +111,7 @@ function togglePalette() {
 
 function addItemToPalette(title: string, url: string, id: number = -1) {
     const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`;
+    if (!title || !url) return;
     const itemEl = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-url"], document.createTextNode(url))));
     if (id !== -1) {
         const switchToTabEl = h("div", ["cp-switch-to-tab"])

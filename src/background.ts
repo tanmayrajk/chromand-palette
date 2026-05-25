@@ -1,131 +1,186 @@
 /// <reference types="npm:@types/chrome" />
-import Fuse from "fuse.js"
+import Fuse from "fuse.js";
 
 interface historyItem {
-    title: string,
-    url: string,
-    visitCount: number
-    lastVisitTime: number
+  title: string;
+  url: string;
+  visitCount: number;
+  lastVisitTime: number;
 }
 
 interface tabItem {
-    title?: string,
-    url?: string,
-    id: number
+  title?: string;
+  url?: string;
+  id: number;
 }
 
-let historyMap = new Map<string, historyItem>()
-const tabMap = new Map<number, tabItem>()
+let historyMap = new Map<string, historyItem>();
+const tabMap = new Map<number, tabItem>();
+
+let initPromise: Promise<void> | null = null
 
 const fuse = new Fuse([] as (historyItem | tabItem)[], {
-    includeScore: true,
-    keys: ["title", "url"]
-})
+  includeScore: true,
+  keys: ["title", "url"],
+});
+
+let searchItems: (historyItem | tabItem)[] = []
 
 chrome.commands.onCommand.addListener((command) => {
-    if (command === 'toggle-palette') {
-        console.log("hi lol");
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.tabs.sendMessage(tabs[0].id!, { action: 'toggle-palette' })
-        })
-    }
-})
+  if (command === "toggle-palette") {
+    console.log("hi lol");
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id!, { action: "toggle-palette" });
+    });
+  }
+});
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg.action === 'change-tab') {
-        const tabId = msg.tabId;
-        chrome.tabs.update(tabId, { active: true });
-        return true;
-    } else if (msg.action === 'open-url') {
-        const url = msg.url;
-        chrome.tabs.create({ url });
-        return true;
-    } else if (msg.action === 'search') {
-        const query = msg.query as string
-        const res = searchIndex(query, 20, historyMap, tabMap, fuse)
+  if (msg.action === "change-tab") {
+    const tabId = msg.tabId;
+    chrome.tabs.update(tabId, { active: true });
+  } else if (msg.action === "open-url") {
+    const url = msg.url;
+    chrome.tabs.create({ url });
+  } 
+  if (msg.action === "search") {
+    (async () => {
+        await ensureInit();
+        const res = searchIndex((msg.query as string).trim(), 25);
         sendResponse({ res })
-    }
-})
+    })();
+    return true;
+  }
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  await ensureInit();
+});
 
 chrome.runtime.onInstalled.addListener(async () => {
-    historyMap = await getHistoryMap(999999999)
-    const tabs = await chrome.tabs.query({})
-    for (const tab of tabs) {
-        if (!tab.id) continue
-
-        const tabInfo = (!tab.url || !tab.title) ? await chrome.tabs.get(tab.id) : tab
-
-        tabMap.set(tab.id, {
-            id: tab.id,
-            title: tabInfo.title,
-            url: tabInfo.url
-        })
-    }
-    console.log(historyMap)
-    console.log(tabMap)
-})
+  await ensureInit();
+});
 
 chrome.history.onVisited.addListener((r) => {
-    if (!r.url) return
-    if (historyMap.has(r.url)) {
-        const item = historyMap.get(r.url)
-        if (!item) return
-        item.visitCount += 1
-    } else {
-        historyMap.set(r.url, {
+  if (!r.url) return;
+  if (historyMap.has(r.url)) {
+    const item = historyMap.get(r.url);
+    if (!item) return;
+    item.visitCount += 1;
+  } else {
+    historyMap.set(r.url, {
+      title: r.title ?? "",
+      url: r.url,
+      visitCount: r.visitCount ?? 1,
+      lastVisitTime: r.lastVisitTime ?? NaN,
+    });
+  }
+  rebuildIndex()
+});
+
+chrome.tabs.onUpdated.addListener(async (id, changeInfo) => {
+    if (!changeInfo.url && !changeInfo.title) return;
+    try {
+        const fullTab = await chrome.tabs.get(id);
+        if (!fullTab.url || !fullTab.title) return;
+        tabMap.set(id, {
+            id,
+            title: fullTab.title,
+            url: fullTab.url
+        })
+        rebuildIndex();
+    } catch (e) {
+        console.error(e)
+    }
+});
+
+chrome.tabs.onRemoved.addListener((id) => {
+  tabMap.delete(id);
+  rebuildIndex()
+});
+
+function getHistoryMap(count: number) {
+  const historyMap = new Map<string, historyItem>();
+  return new Promise<Map<string, historyItem>>((resolve) => {
+    chrome.history.search(
+      { text: "", startTime: 0, maxResults: count },
+      (res) => {
+        res.forEach((r) => {
+          if (!r.url) return;
+
+          historyMap.set(r.url, {
             title: r.title ?? "",
             url: r.url,
             visitCount: r.visitCount ?? 1,
-            lastVisitTime: r.lastVisitTime ?? NaN
-        })
-    }
-})
-
-chrome.tabs.onUpdated.addListener((id, tab) => {
-    const tabItemInMap = tabMap.get(id)
-    if (!tabItemInMap) {
-        tabMap.set(id, {
-            id,
-            title: tab.title,
-            url: tab.url
-        })
-    } else {
-        tabItemInMap.title = tab.title
-        tabItemInMap.url = tab.url
-    }
-})
-
-chrome.tabs.onRemoved.addListener((id) => {
-    tabMap.delete(id)
-})
-
-function getHistoryMap(count: number) {
-    const historyMap = new Map<string, historyItem>()
-    return new Promise<Map<string, historyItem>>(resolve => {
-        chrome.history.search({ text: "", startTime: 0, maxResults: count }, res => {
-            res.forEach(r => {
-                if (!r.url) return
-
-                historyMap.set(r.url, {
-                    title: r.title ?? "",
-                    url: r.url,
-                    visitCount: r.visitCount ?? 1,
-                    lastVisitTime: r.lastVisitTime ?? NaN
-                })
-            })
-            resolve(historyMap)
-        })
-    })
+            lastVisitTime: r.lastVisitTime ?? NaN,
+          });
+        });
+        resolve(historyMap);
+      },
+    );
+  });
 }
 
-function searchIndex(query: string, count: number, hMap: Map<string, historyItem>, tMap: Map<number, tabItem>, f: Fuse<historyItem | tabItem>) {
-    const items = [...hMap.values(), ...tMap.values()]
-    f.setCollection(items)
-    const res = f.search(query, { limit: count })
-    res.sort((a, b) => {
-        const scoreA = (a.score ?? 1) - (("visitCount" in a.item ? a.item.visitCount : 0) * 0.001)
-        const scoreB = (b.score ?? 1) - (("visitCount" in b.item ? b.item.visitCount : 0) * 0.001)
-        return scoreA - scoreB
-    })
-    return res.map(r => r.item)
+function searchIndex(
+  query: string,
+  count: number,
+) {
+  const res = fuse.search(query);
+  res.sort((a, b) => {
+    const tabBoostA = ("id" in a.item) ? 0.2 : 0;
+
+    const tabBoostB = ("id" in b.item) ? 0.2 : 0;
+
+    const visitBoostA = ("visitCount" in a.item)
+      ? a.item.visitCount * 0.001
+      : 0;
+
+    const visitBoostB = ("visitCount" in b.item)
+      ? b.item.visitCount * 0.001
+      : 0;
+
+    const finalA = (a.score ?? 1) -
+      tabBoostA -
+      visitBoostA;
+
+    const finalB = (b.score ?? 1) -
+      tabBoostB -
+      visitBoostB;
+
+    return finalA - finalB;
+  });
+  return res.map((r) => r.item).slice(0, count);
+}
+
+async function init() {
+  historyMap = await getHistoryMap(999999999);
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (!tab.id) continue;
+
+    const tabInfo = (!tab.url || !tab.title)
+      ? await chrome.tabs.get(tab.id)
+      : tab;
+
+    if (!tabInfo.url || !tabInfo.title) continue;
+
+    tabMap.set(tab.id, {
+      id: tab.id,
+      title: tabInfo.title,
+      url: tabInfo.url,
+    });
+  }
+  rebuildIndex();
+}
+
+function ensureInit() {
+    if (!initPromise) {
+        initPromise = init();
+    }
+    return initPromise
+}
+
+function rebuildIndex() {
+    searchItems = [...historyMap.values(), ...tabMap.values()]
+    fuse.setCollection(searchItems)
 }

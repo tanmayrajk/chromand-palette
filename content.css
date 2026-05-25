@@ -1,8 +1,8 @@
 .cp-palette {
     position: fixed;
-    top: 50%;
+    top: 35%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background-color: #3c3e3e;
     padding: 5px;
     color: white;
