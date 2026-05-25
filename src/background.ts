@@ -5,6 +5,7 @@ interface historyItem {
     title: string,
     url: string,
     visitCount: number
+    lastVisitTime: number
 }
 
 interface tabItem {
@@ -17,6 +18,7 @@ let historyMap = new Map<string, historyItem>()
 const tabMap = new Map<number, tabItem>()
 
 const fuse = new Fuse([] as (historyItem | tabItem)[], {
+    includeScore: true,
     keys: ["title", "url"]
 })
 
@@ -73,7 +75,8 @@ chrome.history.onVisited.addListener((r) => {
         historyMap.set(r.url, {
             title: r.title ?? "",
             url: r.url,
-            visitCount: r.visitCount ?? 1
+            visitCount: r.visitCount ?? 1,
+            lastVisitTime: r.lastVisitTime ?? NaN
         })
     }
 })
@@ -107,6 +110,7 @@ function getHistoryMap(count: number) {
                     title: r.title ?? "",
                     url: r.url,
                     visitCount: r.visitCount ?? 1,
+                    lastVisitTime: r.lastVisitTime ?? NaN
                 })
             })
             resolve(historyMap)
@@ -117,6 +121,11 @@ function getHistoryMap(count: number) {
 function searchIndex(query: string, count: number, hMap: Map<string, historyItem>, tMap: Map<number, tabItem>, f: Fuse<historyItem | tabItem>) {
     const items = [...hMap.values(), ...tMap.values()]
     f.setCollection(items)
-    const res = fuse.search(query, { limit: count }).map(i => i.item)
-    return res
+    const res = f.search(query, { limit: count })
+    res.sort((a, b) => {
+        const scoreA = (a.score ?? 1) - (("visitCount" in a.item ? a.item.visitCount : 0) * 0.001)
+        const scoreB = (b.score ?? 1) - (("visitCount" in b.item ? b.item.visitCount : 0) * 0.001)
+        return scoreA - scoreB
+    })
+    return res.map(r => r.item)
 }
