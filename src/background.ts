@@ -1,11 +1,19 @@
 /// <reference types="npm:@types/chrome" />
-import Fuse from "fuse.js"
 
 interface historyItem {
     title: string,
     url: string,
-    visitCount: number,
+    visitCount: number
 }
+
+interface tabItem {
+    title?: string,
+    url?: string,
+    id: number
+}
+
+let historyMap = new Map<string, historyItem>()
+const tabMap = new Map<number, tabItem>()
 
 chrome.commands.onCommand.addListener((command) => {
     if (command === 'toggle-palette') {
@@ -16,7 +24,7 @@ chrome.commands.onCommand.addListener((command) => {
     }
 })
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
     if (msg.action === 'change-tab') {
         const tabId = msg.tabId;
         chrome.tabs.update(tabId, { active: true });
@@ -29,73 +37,66 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
-    const history = await getHistory(999999999);
-    console.log(history.length)
-    await storeInIndexedDB(history)
-})
-
-
-function getHistory(count: number) {
-    return new Promise<historyItem[]>(resolve => {
-        chrome.history.search({ text: "", startTime: 0, maxResults: count }, (res) => {
-            resolve(res.map(r => ({ title: r.title ?? "", url: r.url ?? "", visitCount: r.visitCount ?? 1 })))
+    historyMap = await getHistoryMap(999999999)
+    ;(await chrome.tabs.query({})).forEach(tab => {
+        if (!tab.id) return
+        tabMap.set(tab.id, {
+            id: tab.id,
+            title: tab.title,
+            url: tab.url
         })
     })
-}
+    console.log(historyMap)
+    console.log(tabMap)
+})
 
-function loadFromIndexedDB() {
-    return new Promise<historyItem[]>((resolve, reject) => {
-        const request = indexedDB.open("browserHistory", 1);
+chrome.history.onVisited.addListener((r) => {
+    if (!r.url) return
+    if (historyMap.has(r.url)) {
+        const item = historyMap.get(r.url)
+        if (!item) return
+        item.visitCount += 1
+    } else {
+        historyMap.set(r.url, {
+            title: r.title ?? "",
+            url: r.url,
+            visitCount: r.visitCount ?? 1
+        })
+    }
+})
 
-        request.onerror = () => reject(request.error)
+chrome.tabs.onUpdated.addListener((id, tab) => {
+    const tabItemInMap = tabMap.get(id)
+    if (!tabItemInMap) {
+        tabMap.set(id, {
+            id,
+            title: tab.title,
+            url: tab.url
+        })
+    } else {
+        tabItemInMap.title = tab.title
+        tabItemInMap.url = tab.url
+    }
+})
 
-        request.onsuccess = () => {
-            const db = request.result
-            const tx = db.transaction("history", "readonly")
-            const store = tx.objectStore("history")
+chrome.tabs.onRemoved.addListener((id) => {
+    tabMap.delete(id)
+})
 
-            const getAllRequest = store.getAll()
+function getHistoryMap(count: number) {
+    const historyMap = new Map<string, historyItem>()
+    return new Promise<Map<string, historyItem>>(resolve => {
+        chrome.history.search({ text: "", startTime: 0, maxResults: count }, res => {
+            res.forEach(r => {
+                if (!r.url) return
 
-            getAllRequest.onerror = () => reject(getAllRequest.error)
-
-            getAllRequest.onsuccess = () => {
-                resolve(getAllRequest.result as historyItem[])
-            }
-        }
-    })
-}
-
-function storeInIndexedDB(history: historyItem[]) {
-    return new Promise<void>((resolve, reject) => {
-        const request = indexedDB.open("browserHistory", 1);
-        
-        request.onupgradeneeded = () => {
-            const db = request.result;
-
-            if (!db.objectStoreNames.contains("history")) {
-                db.createObjectStore("history", {
-                    keyPath: "url"
+                historyMap.set(r.url, {
+                    title: r.title ?? "",
+                    url: r.url,
+                    visitCount: r.visitCount ?? 1,
                 })
-            }
-        }
-
-        request.onerror = () => reject(request.error)
-
-        request.onsuccess = () => {
-            const db = request.result
-            const tx = db.transaction("history", "readwrite")
-            const store = tx.objectStore("history");
-
-            history.forEach(item => {
-                store.put(item)
             })
-
-            tx.oncomplete = () => {
-                console.log("history stored");
-                resolve();
-            }
-
-            tx.onerror = () => reject(tx.error)
-        }
+        })
+        resolve(historyMap)
     })
 }
