@@ -1,4 +1,5 @@
 /// <reference types="npm:@types/chrome" />
+import Fuse from "fuse.js"
 
 interface historyItem {
     title: string,
@@ -15,6 +16,10 @@ interface tabItem {
 let historyMap = new Map<string, historyItem>()
 const tabMap = new Map<number, tabItem>()
 
+const fuse = new Fuse([] as (historyItem | tabItem)[], {
+    keys: ["title", "url"]
+})
+
 chrome.commands.onCommand.addListener((command) => {
     if (command === 'toggle-palette') {
         console.log("hi lol");
@@ -24,7 +29,7 @@ chrome.commands.onCommand.addListener((command) => {
     }
 })
 
-chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.action === 'change-tab') {
         const tabId = msg.tabId;
         chrome.tabs.update(tabId, { active: true });
@@ -33,19 +38,27 @@ chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
         const url = msg.url;
         chrome.tabs.create({ url });
         return true;
+    } else if (msg.action === 'search') {
+        const query = msg.query as string
+        const res = searchIndex(query, 20, historyMap, tabMap, fuse)
+        sendResponse({ res })
     }
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
     historyMap = await getHistoryMap(999999999)
-    ;(await chrome.tabs.query({})).forEach(tab => {
-        if (!tab.id) return
+    const tabs = await chrome.tabs.query({})
+    for (const tab of tabs) {
+        if (!tab.id) continue
+
+        const tabInfo = (!tab.url || !tab.title) ? await chrome.tabs.get(tab.id) : tab
+
         tabMap.set(tab.id, {
             id: tab.id,
-            title: tab.title,
-            url: tab.url
+            title: tabInfo.title,
+            url: tabInfo.url
         })
-    })
+    }
     console.log(historyMap)
     console.log(tabMap)
 })
@@ -96,7 +109,14 @@ function getHistoryMap(count: number) {
                     visitCount: r.visitCount ?? 1,
                 })
             })
+            resolve(historyMap)
         })
-        resolve(historyMap)
     })
+}
+
+function searchIndex(query: string, count: number, hMap: Map<string, historyItem>, tMap: Map<number, tabItem>, f: Fuse<historyItem | tabItem>) {
+    const items = [...hMap.values(), ...tMap.values()]
+    f.setCollection(items)
+    const res = fuse.search(query, { limit: count }).map(i => i.item)
+    return res
 }

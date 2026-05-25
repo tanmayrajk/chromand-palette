@@ -30,7 +30,7 @@
     margin-bottom: 5px;
 }
 
-.cp-palette-suggestions {
+.cp-palette-items {
     display: flex;
     flex-direction: column;
     background-color: transparent;
@@ -38,7 +38,7 @@
     overflow-y: scroll;
 }
 
-.cp-suggestion {
+.cp-item {
     padding: 7px 15px;
     color: white;
     background-color: transparent;
@@ -48,12 +48,12 @@
     gap: 10px;
 }
 
-.cp-suggestion-content {
+.cp-item-content {
     min-width: 0;
     flex: 1;
 }
 
-.cp-suggestion-title {
+.cp-item-title {
     font-size: medium;
     font-weight: 500;
     overflow: hidden;
@@ -61,7 +61,7 @@
     white-space: nowrap;
 }
 
-.cp-suggestion-url {
+.cp-item-url {
     font-size: small;
     color: #b0b0b0;
     text-overflow: ellipsis;
@@ -87,7 +87,7 @@
     font-weight: 500;
 }
 
-.cp-suggestion-favicon {
+.cp-item-favicon {
     width: 30px;
     margin-right: 5px;
     border-radius: 7px;
