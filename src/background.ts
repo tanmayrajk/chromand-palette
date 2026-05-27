@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "search") {
     (async () => {
         await ensureInit();
-        const res = searchIndex((msg.query as string).trim(), 25);
+        const res = await searchIndex((msg.query as string).trim(), 25);
         sendResponse({ res })
     })();
     return true;
@@ -99,6 +99,11 @@ chrome.tabs.onRemoved.addListener((id) => {
   rebuildIndex()
 });
 
+async function getAllBookmarks() {
+  const bookmarks = await chrome.bookmarks.search({})
+  return bookmarks.map(b => b.url)
+}
+
 function getHistoryMap(count: number) {
   const historyMap = new Map<string, historyItem>();
   return new Promise<Map<string, historyItem>>((resolve) => {
@@ -121,12 +126,15 @@ function getHistoryMap(count: number) {
   });
 }
 
-function searchIndex(
+async function searchIndex(
   query: string,
   count: number,
 ) {
+  const bookmarks = await getAllBookmarks()
   const res = fuse.search(query);
   res.sort((a, b) => {
+    const bookmarkBoostA = (bookmarks.includes(a.item.url)) ? 0.267 : 0;
+    const bookmarkBoostB = (bookmarks.includes(b.item.url)) ? 0.267 : 0;
     const tabBoostA = ("id" in a.item) ? 0.2 : 0;
 
     const tabBoostB = ("id" in b.item) ? 0.2 : 0;
@@ -140,10 +148,12 @@ function searchIndex(
       : 0;
 
     const finalA = (a.score ?? 1) -
+      bookmarkBoostA -
       tabBoostA -
       visitBoostA;
 
     const finalB = (b.score ?? 1) -
+      bookmarkBoostB -
       tabBoostB -
       visitBoostB;
 

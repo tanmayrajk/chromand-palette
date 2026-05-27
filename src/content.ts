@@ -48,6 +48,12 @@ paletteInput.addEventListener("input", async () => {
         activeIndex = 0;
         items.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
     }
+    items[activeIndex]?.scrollIntoView({
+            block: "nearest",
+    });
+    if (query.trim() === "") {
+        paletteItems.scrollTo(0, 0)
+    }
 })
 
 document.addEventListener("keydown", (e) => {
@@ -95,8 +101,14 @@ document.addEventListener("keydown", (e) => {
     }
 })
 
-function togglePalette() {
+async function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
+        const searchRes = await search("")
+        paletteItems.innerHTML = "";
+        searchRes.forEach(item => {
+            const id = item.id ? item.id : -1
+            addItemToPalette(item.title ?? "", item.url ?? "", id)
+        })
         palette.classList.remove("cp-hidden");
         paletteInput.focus();
     } else {
