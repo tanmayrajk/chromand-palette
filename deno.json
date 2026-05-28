@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "build": "deno bundle src/background.ts > dist/background.js && deno bundle src/content.ts > dist/content.js"
+    "build": "deno bundle src/background.ts > dist/background.js && deno bundle src/content.ts > dist/content.js && deno bundle src/settings.ts > dist/settings.js"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",

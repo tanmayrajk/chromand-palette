@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>options | chromand palette</title>
+    <link rel="stylesheet" href="settings.css">
+    <script defer src="dist/settings.js"></script>
+</head>
+
+<body>
+    <section>
+        <h1>chromand palette</h1>
+        <p>hi lol this is the options page for the extension</p>
+    </section>
+    <!-- <section>
+        <h2>general</h2>
+        <span>open with <input type=""></span>
+    </section> -->
+    <section>
+        <h2>bangs</h2>
+        <p>bangs are ways to search stuff up in websites faster. activate bangs for a website by pressing tab on its
+            url.</p>
+        <p>to add a bang, name it whatever you want and then in the url, replace the search query in the url with a
+            <code>%s</code>
+        </p>
+        <br>
+        <form id="bang-form">
+            <label for="bang-name-input">bang name</label>
+            <input id="bang-name-input" type="text" placeholder="eg. youtube" required>
+            <label for="bang-url-input">bang url</label>
+            <input id="bang-url-input" type="url" placeholder="eg. https://www.youtube.com/results?search_query=%s" required>
+            <button>add bangs</button>
+        </form>
+        <div id="bangs-list"></div>
+    </section>
+</body>
+
+</html>

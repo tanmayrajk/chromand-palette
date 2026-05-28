@@ -1,0 +1,163 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    padding: 20px 30px;
+    background-color: #232525;
+    color: #eeeeee;
+    max-width: 50%;
+}
+
+section {
+    padding-bottom: 20px;
+}
+
+#bang-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 50%;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+input {
+    padding: 7px 10px;
+    background-color: #3C3E3E;
+    border: 0;
+    outline: 0;
+    color: #d4dada;
+    font-weight: 500;
+    font-size: medium;
+    border-radius: 7px;
+    transition: 100ms;
+    margin-bottom: 20px;
+}
+
+label {
+    margin-bottom: 7px;
+    font-size: small;
+    font-weight: 500;
+}
+
+#bang-form button {
+    width: fit-content;
+    background-color: #d4dada;
+    outline: none;
+    border: 0;
+    border-radius: 7px;
+    font-weight: 600;
+    padding: 7px 10px;
+    color: #3C3E3E;
+    transition: 100ms;
+}
+
+#bang-form button:hover {
+    cursor: pointer;
+    background-color: #e2e9e9;
+    padding: 10px 13px;
+}
+
+#bang-form button:focus {
+    background-color: #e2e9e9;
+    padding: 10px 13px;
+}
+
+input::placeholder {
+    color: #b0b4b4;
+}
+
+input:hover {
+    background-color: #353737;
+}
+
+input:focus {
+    background-color: #4c4e4e;
+    padding: 10px 13px;
+}
+
+button {
+    padding: 3px 5px;
+}
+
+h1, h2 {
+    padding-bottom: 5px;
+}
+
+h1 {
+    font-size: xx-large;
+}
+
+h2 {
+    font-size: x-large;
+}
+
+p {
+    font-size: medium;
+}
+
+#bangs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bang-item {
+    display: flex;
+    align-items: center;
+    background-color: #1a1c1c;
+    max-width: 60%;
+    padding: 13px 16px;
+    border-radius: 7px;
+    justify-content: space-between;
+}
+
+.bang-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 85%;
+    transition: 100ms;
+}
+
+.bang-item:hover .bang-content {
+    min-width: auto;
+}
+
+.bang-item:hover .bang-url {
+    white-space: normal;
+}
+
+.bang-name {
+    font-size: medium;
+    color: #eeeeee;
+}
+
+.bang-url {
+    font-size: small;
+    font-weight: 600;
+    color: #b0b4b4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* width: 95%; */
+}
+
+.bang-delete-btn {
+    background-color: #353737;
+    outline: none;
+    border: 0;
+    padding: 7px 10px;
+    color: #b0b4b4;
+    cursor: pointer;
+    transition: 100ms;
+    font-weight: 600;
+    border-radius: 7px;
+}
+
+.bang-delete-btn:hover {
+    padding: 10px 13px;
+    cursor: pointer;
+}

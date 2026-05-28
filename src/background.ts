@@ -180,6 +180,12 @@ async function init() {
       url: tabInfo.url,
     });
   }
+  const res = await chrome.storage.local.get("bangs");
+  if (!res.bangs) {
+    await chrome.storage.local.set({
+      bangs: []
+    })
+  }
   rebuildIndex();
 }
 
