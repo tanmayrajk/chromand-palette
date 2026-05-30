@@ -61,7 +61,7 @@
     white-space: nowrap;
 }
 
-.cp-item-url {
+.cp-item-desc {
     font-size: small;
     color: #b0b0b0;
     text-overflow: ellipsis;

@@ -14,7 +14,7 @@ const fuse = new Fuse([] as (historyItem | tabItem)[], {
 });
 
 const bangsFuse = new Fuse([] as (bangItem)[], {
-  keys: ["name", "url"]
+  keys: ["shorthand", "name", "url"]
 })
 
 let searchItems: (historyItem | tabItem)[] = []

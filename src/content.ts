@@ -33,12 +33,21 @@ document.addEventListener("click", (e) => {
 
 paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
+
+    if (currentMode === Modes.BANG) {
+        return;
+    }
+
     const searchRes = await search(query)
     paletteItems.innerHTML = "";
 
     console.log(searchRes)
 
     searchRes.forEach(item => {
+        if (item.type === ItemTypes.BANG) {
+            addItemToPalette(item.type, item.title, item.url, item.id, item.shorthand)
+            return;
+        }
         addItemToPalette(item.type, item.title, item.url, item.id)
     })
 
@@ -90,24 +99,27 @@ document.addEventListener("keydown", (e) => {
             if (type === ItemTypes.TAB) {
                 const id = parseInt(selectedItem.dataset.id!);
                 chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
+                togglePalette();
             } else if (type === ItemTypes.HISTORY) {
                 chrome.runtime.sendMessage({ action: 'open-url', url });
+                togglePalette();
             } else if (type === ItemTypes.BANG) {
-                currentMode = Modes.BANG
+                bangMode(selectedItem.dataset.title!, selectedItem.dataset.url!)
             }
-            togglePalette();
         }
+    }
+})
+
+document.addEventListener("keydown", (e) => {
+    if (palette.classList.contains("cp-hidden")) return;
+    if (e.key === "Backspace" && currentMode === Modes.BANG && paletteInput.value === "") {
+        normalMode();
     }
 })
 
 async function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
-        currentMode = Modes.NORMAL
-        const searchRes = await search("")
-        paletteItems.innerHTML = "";
-        searchRes.forEach(item => {
-            addItemToPalette(item.type, item.title, item.url, item.id)
-        })
+        await normalMode()
         palette.classList.remove("cp-hidden");
         paletteInput.focus();
     } else {
@@ -120,10 +132,28 @@ async function togglePalette() {
     }
 }
 
-function addItemToPalette(type: string, title: string, url?: string, id?: number) {
-    let itemEl: HTMLElement = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-url"], document.createTextNode(url!))));
-    itemEl.dataset.type = type
+function bangMode(title: string, url: string) {
+    currentMode = Modes.BANG
+    paletteItems.innerHTML = "";
+    paletteInput.value = "";
+    console.log(Modes.BANG)
+}
 
+async function normalMode() {
+    currentMode = Modes.NORMAL
+    activeIndex = -1;
+    const searchRes = await search("")
+    paletteItems.innerHTML = "";
+    searchRes.forEach(item => {
+        addItemToPalette(item.type, item.title, item.url, item.id)
+    })
+    console.log(Modes.NORMAL)
+}
+
+function addItemToPalette(type: string, title: string, url?: string, id?: number, shorthand?: string) {
+    let itemEl: HTMLElement = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-desc"], document.createTextNode(url!))));
+    itemEl.dataset.type = type
+    
     if (["tab", "history", "bang", "search"].includes(type)) {
         if (!title || !url) return
 
@@ -148,6 +178,11 @@ function addItemToPalette(type: string, title: string, url?: string, id?: number
             break;
         }
         case "bang": {
+            itemEl = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(shorthand!)), h("div", ["cp-item-desc"], document.createTextNode(title))));
+            itemEl.dataset.shorthand = shorthand;
+            itemEl.dataset.title = title;
+            itemEl.dataset.url = url;
+            itemEl.dataset.type = type
             break;
         }
         case "search": {
@@ -158,7 +193,7 @@ function addItemToPalette(type: string, title: string, url?: string, id?: number
     paletteItems.appendChild(itemEl)
 }
 
-const search = (query: string): Promise<{ type: string; title: string; url?: string; id?: number }[]> => {
+const search = (query: string): Promise<{ type: string; title: string; shorthand?: string; url: string; id?: number }[]> => {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: "search", query }, (res) => {
             resolve(res.res)

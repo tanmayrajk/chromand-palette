@@ -6,6 +6,7 @@ const regex = new RegExp(
 
 interface bang {
     title: string,
+    shorthand: string;
     url: string,
     timeCreated: number
 }
@@ -14,9 +15,10 @@ bangsFormEl?.addEventListener('submit', async e => {
     e.preventDefault()
 
     const nameInput = (bangsFormEl.querySelector('input#bang-name-input') as HTMLInputElement);
+    const shortHandInput = (bangsFormEl.querySelector('input#bang-shorthand-input') as HTMLInputElement);
     const urlInput = (bangsFormEl.querySelector('input#bang-url-input') as HTMLInputElement);
 
-    if (await doesBangExist(nameInput.value)) {
+    if (await doesBangExist(shortHandInput.value)) {
         alert("a bang with that name already exists, use some other name")
         return
     }
@@ -31,17 +33,18 @@ bangsFormEl?.addEventListener('submit', async e => {
         return
     }
 
-    await addBang(nameInput.value, urlInput.value)
-    bangsListEl.prepend(createBangEl(nameInput.value, urlInput.value))
+    await addBang(nameInput.value, shortHandInput.value, urlInput.value)
+    bangsListEl.prepend(createBangEl(nameInput.value, shortHandInput.value, urlInput.value))
 
     nameInput.value = "";
     urlInput.value = "";
+    shortHandInput.value = "";
 
 })
 
-async function doesBangExist(name: string) {
+async function doesBangExist(shorthand: string) {
     const bangs = await getAllBangs();
-    const isBangAlreadyThere = bangs.some(bang => bang.title === name.trim())
+    const isBangAlreadyThere = bangs.some(bang => bang.shorthand === shorthand.trim())
     return isBangAlreadyThere
 }
 
@@ -50,30 +53,30 @@ async function getAllBangs() {
     return res.bangs as bang[]
 }
 
-async function addBang(name: string, url: string) {
+async function addBang(name: string, shorthand: string, url: string) {
     const bangs = await getAllBangs();
-    const bang = { title: name.trim(), url: url.trim(), timeCreated: Date.now() }
+    const bang = { title: name.trim(), shorthand: shorthand.trim(), url: url.trim(), timeCreated: Date.now() }
     const newBangs = [bang, ...bangs]
     await chrome.storage.local.set({ "bangs": newBangs })
 }
 
-async function deleteBang(name: string) {
+async function deleteBang(shorthand: string) {
     let bangs = await getAllBangs();
-    if (await doesBangExist(name)) {
-        bangs = bangs.filter(bang => bang.title != name)
+    if (await doesBangExist(shorthand)) {
+        bangs = bangs.filter(bang => bang.shorthand != shorthand)
         await chrome.storage.local.set({ "bangs": bangs })
     }
 }
 
-function createBangEl(name: string, url: string) {
+function createBangEl(name: string, shorthand: string, url: string) {
     const bangItemEl = h("div", ["bang-item"])
     const bangContentEl = h("div", ["bang-content"])
-    const bangNameEl = h("span", ["bang-name"], document.createTextNode(name.trim()))
+    const bangNameEl = h("span", ["bang-name"], document.createTextNode(`${name.trim()} (${shorthand.trim()})`))
     const bangUrlEl = h("span", ["bang-url"], document.createTextNode(url.trim()))
     const bangDeleteBtnEl = h("button", ["bang-delete-btn"], document.createTextNode("delete"))
     bangDeleteBtnEl.addEventListener("click", e => {
         e.preventDefault()
-        deleteBang(name.trim())
+        deleteBang(shorthand.trim())
         bangItemEl.remove()
     })
     bangContentEl.append(bangNameEl, bangUrlEl)
@@ -91,6 +94,6 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
 
 (async () => {
     ((await getAllBangs()).sort((a, b) => b.timeCreated - a.timeCreated)).forEach(bang => {
-        bangsListEl?.prepend(createBangEl(bang.title, bang.url))
+        bangsListEl?.prepend(createBangEl(bang.title, bang.shorthand, bang.url))
     })
 })()
