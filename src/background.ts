@@ -6,12 +6,27 @@ interface historyItem {
   url: string;
   visitCount: number;
   lastVisitTime: number;
+  type: string;
 }
 
 interface tabItem {
   title?: string;
   url?: string;
   id: number;
+  type: string;
+}
+
+interface bangItem {
+  name: string;
+  url: string;
+  timeCreated: number;
+  type: string
+}
+
+interface searchItem {
+  name: string;
+  url: string;
+  type: string;
 }
 
 let historyMap = new Map<string, historyItem>();
@@ -23,6 +38,10 @@ const fuse = new Fuse([] as (historyItem | tabItem)[], {
   includeScore: true,
   keys: ["title", "url"],
 });
+
+const bangsFuse = new Fuse([] as (bangItem)[], {
+  keys: ["name", "url"]
+})
 
 let searchItems: (historyItem | tabItem)[] = []
 
@@ -73,6 +92,7 @@ chrome.history.onVisited.addListener((r) => {
       url: r.url,
       visitCount: r.visitCount ?? 1,
       lastVisitTime: r.lastVisitTime ?? NaN,
+      type: "history"
     });
   }
   rebuildIndex()
@@ -86,7 +106,8 @@ chrome.tabs.onUpdated.addListener(async (id, changeInfo) => {
         tabMap.set(id, {
             id,
             title: fullTab.title,
-            url: fullTab.url
+            url: fullTab.url,
+            type: "tab"
         })
         rebuildIndex();
     } catch (e) {
@@ -118,6 +139,7 @@ function getHistoryMap(count: number) {
             url: r.url,
             visitCount: r.visitCount ?? 1,
             lastVisitTime: r.lastVisitTime ?? NaN,
+            type: "history"
           });
         });
         resolve(historyMap);
@@ -136,9 +158,7 @@ async function searchIndex(
     const bookmarkBoostA = (bookmarks.includes(a.item.url)) ? 0.267 : 0;
     const bookmarkBoostB = (bookmarks.includes(b.item.url)) ? 0.267 : 0;
     const tabBoostA = ("id" in a.item) ? 0.2 : 0;
-
     const tabBoostB = ("id" in b.item) ? 0.2 : 0;
-
     const visitBoostA = ("visitCount" in a.item)
       ? a.item.visitCount * 0.001
       : 0;
@@ -159,7 +179,15 @@ async function searchIndex(
 
     return finalA - finalB;
   });
-  return res.map((r) => r.item).slice(0, count);
+  const initialRes = res.map((r) => r.item).slice(0, count);
+  if (query.trim()[0] === "/") {
+    const { bangs } = await chrome.storage.local.get<{ bangs: bangItem[] }>("bangs")
+    bangs.forEach(bang => bang.type = "bang")
+    bangsFuse.setCollection(bangs)
+    const bangsRes = bangsFuse.search(query.trim().slice(1)).map(b => b.item).slice(0, 5)
+    console.log(bangsRes)
+  }
+  return initialRes
 }
 
 async function init() {
@@ -178,6 +206,7 @@ async function init() {
       id: tab.id,
       title: tabInfo.title,
       url: tabInfo.url,
+      type: "tab"
     });
   }
   const res = await chrome.storage.local.get("bangs");

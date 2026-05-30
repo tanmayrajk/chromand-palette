@@ -4,7 +4,6 @@ const regex = new RegExp(
     "^[a-zA-Z][a-zA-Z0-9+.-]*:\\/\\/[^\\/\\s]+.*%s.*$"
 );
 
-
 interface bang {
     name: string,
     url: string,

@@ -32,17 +32,11 @@ paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
     const searchRes = await search(query)
     paletteItems.innerHTML = "";
-    if (query.trim() != "") {
-        if (query.trim().length > 2) {
-            searchRes.unshift({ title: `search ${query.trim()} on google`, url: `https://www.google.com/search?q=${encodeURI(query.trim())}`, id: -1 })
-        } else {
-            searchRes.splice(1, 0, { title: `search ${query.trim()} on google`, url: `https://www.google.com/search?q=${encodeURI(query.trim())}`, id: -1 })
-        }
-    }
+
     searchRes.forEach(item => {
-        const id = item.id ? item.id : -1
-        addItemToPalette(item.title ?? "", item.url ?? "", id)
+        addItemToPalette(item.type, item.title, item.url, item.id)
     })
+
     const items = Array.from(paletteItems.children) as HTMLDivElement[];
     if (query.trim() != "" && items.length > 0) {
         activeIndex = 0;
@@ -106,8 +100,7 @@ async function togglePalette() {
         const searchRes = await search("")
         paletteItems.innerHTML = "";
         searchRes.forEach(item => {
-            const id = item.id ? item.id : -1
-            addItemToPalette(item.title ?? "", item.url ?? "", id)
+            addItemToPalette(item.type, item.title, item.url, item.id)
         })
         palette.classList.remove("cp-hidden");
         paletteInput.focus();
@@ -121,23 +114,39 @@ async function togglePalette() {
     }
 }
 
-function addItemToPalette(title: string, url: string, id: number = -1) {
-    const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`;
-    if (!title || !url) return;
-    const itemEl = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-url"], document.createTextNode(url))));
-    if (id !== -1) {
-        const switchToTabEl = h("div", ["cp-switch-to-tab"])
-        switchToTabEl.innerHTML = 'switch to tab'
-        itemEl.append(switchToTabEl)
+function addItemToPalette(type: string, title: string, url?: string, id?: number) {
+    let itemEl: HTMLElement = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-url"], document.createTextNode(url!))));
+    itemEl.dataset.type = type
+
+    if (["tab", "history", "bang", "search"].includes(type)) {
+        if (!title || !url) return
+
+        itemEl.dataset.title = title;
+        itemEl.dataset.url = url;
+
+        if (["tab", "history"].includes(type)) {
+            itemEl.getElementsByTagName("img")[0].src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`
+        }
     }
-    itemEl.getElementsByTagName("img")[0].src = faviconUrl;
-    itemEl.dataset.title = title;
-    itemEl.dataset.url = url;
-    itemEl.dataset.id = id.toString();
-    paletteItems.appendChild(itemEl);
+    
+    switch (type) {
+        case "tab": {
+            if (!id) return;
+            const switchToTabEl = h("div", ["cp-switch-to-tab"]);
+            switchToTabEl.innerHTML = 'switch to tab';
+            itemEl.append(switchToTabEl);
+            itemEl.dataset.id = String(id)
+            break;
+        }
+        case "history": {
+            break;
+        }
+    }
+
+    paletteItems.appendChild(itemEl)
 }
 
-const search = (query: string): Promise<{ title?: string; url?: string; id: number }[]> => {
+const search = (query: string): Promise<{ type: string; title: string; url?: string; id?: number }[]> => {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: "search", query }, (res) => {
             resolve(res.res)
