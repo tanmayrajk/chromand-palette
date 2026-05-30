@@ -32,7 +32,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "change-tab") {
     const tabId = msg.tabId;
     chrome.tabs.update(tabId, { active: true });
-  } else if (msg.action === "open-url") {
+  } else if (msg.action === "open-url-in-current-tab") {
+    const url = msg.url;
+    chrome.tabs.update({ url })
+  } else if (msg.action === "open-url-in-new-tab") {
     const url = msg.url;
     chrome.tabs.create({ url });
   } 

@@ -104,7 +104,11 @@ document.addEventListener("keydown", (e) => {
                 chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
                 togglePalette();
             } else if (type === ItemTypes.HISTORY) {
-                chrome.runtime.sendMessage({ action: 'open-url', url });
+                if (e.shiftKey) {
+                    chrome.runtime.sendMessage({ action: 'open-url-in-current-tab', url });
+                } else {
+                    chrome.runtime.sendMessage({ action: 'open-url-in-new-tab', url });
+                }
                 togglePalette();
             } else if (type === ItemTypes.BANG) {
                 bangMode(selectedItem.dataset.title!, selectedItem.dataset.shorthand!, selectedItem.dataset.url!)
