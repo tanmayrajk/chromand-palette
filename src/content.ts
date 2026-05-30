@@ -1,5 +1,6 @@
 /// <reference types="npm:@types/chrome" />
-import { ItemTypes, Mode, Modes } from "./constants.ts";
+import { ItemType, ItemTypes, Mode, Modes } from "./constants.ts";
+import { activeBangType } from "./types.ts";
 
 const palette = h("div", ["cp-palette", "cp-hidden"], h("input", ["cp-palette-input"]), h("div", ["cp-palette-items"]));
 const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
@@ -11,6 +12,7 @@ document.body.appendChild(palette);
 let activeIndex = -1;
 
 let currentMode: Mode = Modes.NORMAL
+let activeBang: activeBangType | null =  null
 
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle-palette') {
@@ -33,23 +35,21 @@ document.addEventListener("click", (e) => {
 
 paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
-
-    if (currentMode === Modes.BANG) {
-        return;
-    }
-
-    const searchRes = await search(query)
     paletteItems.innerHTML = "";
 
-    console.log(searchRes)
+    if (currentMode === Modes.BANG) {
+        addItemToPalette(ItemTypes.HISTORY, `search ${query.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", query.trim()))
+    } else {
+        const searchRes = await search(query)
 
-    searchRes.forEach(item => {
-        if (item.type === ItemTypes.BANG) {
-            addItemToPalette(item.type, item.title, item.url, item.id, item.shorthand)
-            return;
-        }
-        addItemToPalette(item.type, item.title, item.url, item.id)
-    })
+        searchRes.forEach(item => {
+            if (item.type === ItemTypes.BANG) {
+                addItemToPalette(item.type, item.title, item.url, item.id, item.shorthand)
+                return;
+            }
+            addItemToPalette(item.type, item.title, item.url, item.id)
+        })
+    }
 
     const items = Array.from(paletteItems.children) as HTMLDivElement[];
     if (query.trim() != "" && items.length > 0) {
@@ -82,7 +82,9 @@ document.addEventListener("keydown", (e) => {
         items[activeIndex]?.scrollIntoView({
             block: "nearest",
         });
-        paletteInput.value = items[activeIndex]?.dataset.url || "";
+        if (!activeBang) {
+            paletteInput.value = items[activeIndex]?.dataset.url || "";
+        }
         paletteInput.focus();
     }
 })
@@ -104,7 +106,7 @@ document.addEventListener("keydown", (e) => {
                 chrome.runtime.sendMessage({ action: 'open-url', url });
                 togglePalette();
             } else if (type === ItemTypes.BANG) {
-                bangMode(selectedItem.dataset.title!, selectedItem.dataset.url!)
+                bangMode(selectedItem.dataset.title!, selectedItem.dataset.shorthand!, selectedItem.dataset.url!)
             }
         }
     }
@@ -132,15 +134,20 @@ async function togglePalette() {
     }
 }
 
-function bangMode(title: string, url: string) {
+function bangMode(title: string, shorthand: string, url: string) {
     currentMode = Modes.BANG
+    activeBang = {
+        shorthand, title, url
+    }
     paletteItems.innerHTML = "";
     paletteInput.value = "";
+    addItemToPalette(ItemTypes.HISTORY, `Search ${paletteInput.value.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", paletteInput.value.trim()))
     console.log(Modes.BANG)
 }
 
 async function normalMode() {
     currentMode = Modes.NORMAL
+    activeBang = null;
     activeIndex = -1;
     const searchRes = await search("")
     paletteItems.innerHTML = "";
@@ -150,7 +157,7 @@ async function normalMode() {
     console.log(Modes.NORMAL)
 }
 
-function addItemToPalette(type: string, title: string, url?: string, id?: number, shorthand?: string) {
+function addItemToPalette(type: ItemType, title: string, url?: string, id?: number, shorthand?: string) {
     let itemEl: HTMLElement = h("div", ["cp-item"], h("img", ["cp-item-favicon"]), h("div", ["cp-item-content"], h("div", ["cp-item-title"], document.createTextNode(title)), h("div", ["cp-item-desc"], document.createTextNode(url!))));
     itemEl.dataset.type = type
     
@@ -193,7 +200,7 @@ function addItemToPalette(type: string, title: string, url?: string, id?: number
     paletteItems.appendChild(itemEl)
 }
 
-const search = (query: string): Promise<{ type: string; title: string; shorthand?: string; url: string; id?: number }[]> => {
+const search = (query: string): Promise<{ type: ItemType; title: string; shorthand?: string; url: string; id?: number }[]> => {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: "search", query }, (res) => {
             resolve(res.res)

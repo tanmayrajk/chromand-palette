@@ -28,3 +28,9 @@ export interface searchItem {
   url: string;
   type: ItemType;
 }
+
+export interface activeBangType {
+    title: string,
+    url: string,
+    shorthand: string
+}
