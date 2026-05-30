@@ -1,0 +1,29 @@
+import { ItemType } from "./constants.ts";
+
+export interface historyItem {
+  title: string;
+  url: string;
+  visitCount: number;
+  lastVisitTime: number;
+  type: ItemType;
+}
+
+export interface tabItem {
+  title?: string;
+  url?: string;
+  id: number;
+  type: ItemType;
+}
+
+export interface bangItem {
+  title: string;
+  url: string;
+  timeCreated: number;
+  type: ItemType
+}
+
+export interface searchItem {
+  title: string;
+  url: string;
+  type: ItemType;
+}

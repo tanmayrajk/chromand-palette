@@ -5,7 +5,7 @@ const regex = new RegExp(
 );
 
 interface bang {
-    name: string,
+    title: string,
     url: string,
     timeCreated: number
 }
@@ -41,7 +41,7 @@ bangsFormEl?.addEventListener('submit', async e => {
 
 async function doesBangExist(name: string) {
     const bangs = await getAllBangs();
-    const isBangAlreadyThere = bangs.some(bang => bang.name === name.trim())
+    const isBangAlreadyThere = bangs.some(bang => bang.title === name.trim())
     return isBangAlreadyThere
 }
 
@@ -52,7 +52,7 @@ async function getAllBangs() {
 
 async function addBang(name: string, url: string) {
     const bangs = await getAllBangs();
-    const bang = { name: name.trim(), url: url.trim(), timeCreated: Date.now() }
+    const bang = { title: name.trim(), url: url.trim(), timeCreated: Date.now() }
     const newBangs = [bang, ...bangs]
     await chrome.storage.local.set({ "bangs": newBangs })
 }
@@ -60,7 +60,7 @@ async function addBang(name: string, url: string) {
 async function deleteBang(name: string) {
     let bangs = await getAllBangs();
     if (await doesBangExist(name)) {
-        bangs = bangs.filter(bang => bang.name != name)
+        bangs = bangs.filter(bang => bang.title != name)
         await chrome.storage.local.set({ "bangs": bangs })
     }
 }
@@ -91,6 +91,6 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
 
 (async () => {
     ((await getAllBangs()).sort((a, b) => b.timeCreated - a.timeCreated)).forEach(bang => {
-        bangsListEl?.prepend(createBangEl(bang.name, bang.url))
+        bangsListEl?.prepend(createBangEl(bang.title, bang.url))
     })
 })()

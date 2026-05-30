@@ -5,6 +5,13 @@ const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElem
 paletteInput.placeholder = "Search...";
 const paletteItems = palette.querySelector(".cp-palette-items") as HTMLDivElement;
 
+const ItemTypes = {
+    TAB: "tab",
+    HISTORY: "history",
+    BANG: "bang",
+    SEARCH: "search"
+}
+
 document.body.appendChild(palette);
 
 let activeIndex = -1;
@@ -32,6 +39,8 @@ paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
     const searchRes = await search(query)
     paletteItems.innerHTML = "";
+
+    console.log(searchRes)
 
     searchRes.forEach(item => {
         addItemToPalette(item.type, item.title, item.url, item.id)
@@ -83,14 +92,17 @@ document.addEventListener("keydown", (e) => {
         const items = Array.from(paletteItems.children) as HTMLDivElement[];
         const selectedItem = items[activeIndex];
         if (selectedItem) {
+            const type = selectedItem.dataset.type
             const url = selectedItem.dataset.url;
-            const id = parseInt(selectedItem.dataset.id || "-1");
-            togglePalette();
-            if (id !== -1) {
+            if (type === "tab") {
+                const id = parseInt(selectedItem.dataset.id!);
                 chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
-            } else if (url) {
+            } else if (type === "history") {
                 chrome.runtime.sendMessage({ action: 'open-url', url });
+            } else if (type === "bang") {
+
             }
+            togglePalette();
         }
     }
 })
@@ -139,6 +151,12 @@ function addItemToPalette(type: string, title: string, url?: string, id?: number
             break;
         }
         case "history": {
+            break;
+        }
+        case "bang": {
+            break;
+        }
+        case "search": {
             break;
         }
     }

@@ -1,33 +1,7 @@
 /// <reference types="npm:@types/chrome" />
 import Fuse from "fuse.js";
-
-interface historyItem {
-  title: string;
-  url: string;
-  visitCount: number;
-  lastVisitTime: number;
-  type: string;
-}
-
-interface tabItem {
-  title?: string;
-  url?: string;
-  id: number;
-  type: string;
-}
-
-interface bangItem {
-  name: string;
-  url: string;
-  timeCreated: number;
-  type: string
-}
-
-interface searchItem {
-  name: string;
-  url: string;
-  type: string;
-}
+import { historyItem, tabItem, bangItem, searchItem } from "./types.ts";
+import { ItemTypes } from "./constants.ts";
 
 let historyMap = new Map<string, historyItem>();
 const tabMap = new Map<number, tabItem>();
@@ -92,7 +66,7 @@ chrome.history.onVisited.addListener((r) => {
       url: r.url,
       visitCount: r.visitCount ?? 1,
       lastVisitTime: r.lastVisitTime ?? NaN,
-      type: "history"
+      type: ItemTypes.HISTORY
     });
   }
   rebuildIndex()
@@ -107,7 +81,7 @@ chrome.tabs.onUpdated.addListener(async (id, changeInfo) => {
             id,
             title: fullTab.title,
             url: fullTab.url,
-            type: "tab"
+            type: ItemTypes.TAB
         })
         rebuildIndex();
     } catch (e) {
@@ -139,7 +113,7 @@ function getHistoryMap(count: number) {
             url: r.url,
             visitCount: r.visitCount ?? 1,
             lastVisitTime: r.lastVisitTime ?? NaN,
-            type: "history"
+            type: ItemTypes.HISTORY
           });
         });
         resolve(historyMap);
@@ -180,14 +154,17 @@ async function searchIndex(
     return finalA - finalB;
   });
   const initialRes = res.map((r) => r.item).slice(0, count);
+  let finalRes :(historyItem | bangItem | tabItem | searchItem)[] = []
+  finalRes = [...initialRes]
   if (query.trim()[0] === "/") {
     const { bangs } = await chrome.storage.local.get<{ bangs: bangItem[] }>("bangs")
-    bangs.forEach(bang => bang.type = "bang")
+    bangs.forEach(bang => bang.type = ItemTypes.BANG)
     bangsFuse.setCollection(bangs)
     const bangsRes = bangsFuse.search(query.trim().slice(1)).map(b => b.item).slice(0, 5)
     console.log(bangsRes)
+    finalRes = [...bangsRes, ...finalRes]
   }
-  return initialRes
+  return finalRes
 }
 
 async function init() {
@@ -206,15 +183,21 @@ async function init() {
       id: tab.id,
       title: tabInfo.title,
       url: tabInfo.url,
-      type: "tab"
+      type: ItemTypes.TAB
     });
   }
-  const res = await chrome.storage.local.get("bangs");
-  if (!res.bangs) {
+  const { bangs } = await chrome.storage.local.get("bangs");
+  if (!bangs) {
     await chrome.storage.local.set({
       bangs: []
     })
   }
+  // const { searchEngine } = await chrome.storage.local.get("searchEngine")
+  // if (!searchEngine) {
+  //   await chrome.storage.local.set({
+  //     searchEngine: "Google"
+  //   })
+  // }
   rebuildIndex();
 }
 
