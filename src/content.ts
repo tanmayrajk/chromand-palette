@@ -1,20 +1,16 @@
 /// <reference types="npm:@types/chrome" />
+import { ItemTypes, Mode, Modes } from "./constants.ts";
 
 const palette = h("div", ["cp-palette", "cp-hidden"], h("input", ["cp-palette-input"]), h("div", ["cp-palette-items"]));
 const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
 paletteInput.placeholder = "Search...";
 const paletteItems = palette.querySelector(".cp-palette-items") as HTMLDivElement;
 
-const ItemTypes = {
-    TAB: "tab",
-    HISTORY: "history",
-    BANG: "bang",
-    SEARCH: "search"
-}
-
 document.body.appendChild(palette);
 
 let activeIndex = -1;
+
+let currentMode: Mode = Modes.NORMAL
 
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle-palette') {
@@ -55,6 +51,7 @@ paletteInput.addEventListener("input", async () => {
             block: "nearest",
     });
     if (query.trim() === "") {
+        activeIndex = -1;
         paletteItems.scrollTo(0, 0)
     }
 })
@@ -62,20 +59,16 @@ paletteInput.addEventListener("input", async () => {
 document.addEventListener("keydown", (e) => {
     if (palette.classList.contains("cp-hidden")) return;
     const items = Array.from(paletteItems.children) as HTMLDivElement[];
-    if (e.key === "ArrowDown") {
-        e.preventDefault();
+    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
+        e.preventDefault()
         activeIndex = (activeIndex + 1) % items.length;
-        items.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
-        items[activeIndex]?.scrollIntoView({
-            block: "nearest",
-        });
-        paletteInput.value = items[activeIndex]?.dataset.url || "";
-        paletteInput.focus();
-
     }
-    else if (e.key === "ArrowUp") {
-        e.preventDefault();
+    else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
+        e.preventDefault()
         activeIndex = (activeIndex - 1 + items.length) % items.length;
+    }
+
+    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey) || e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
         items.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
         items[activeIndex]?.scrollIntoView({
             block: "nearest",
@@ -94,13 +87,13 @@ document.addEventListener("keydown", (e) => {
         if (selectedItem) {
             const type = selectedItem.dataset.type
             const url = selectedItem.dataset.url;
-            if (type === "tab") {
+            if (type === ItemTypes.TAB) {
                 const id = parseInt(selectedItem.dataset.id!);
                 chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
-            } else if (type === "history") {
+            } else if (type === ItemTypes.HISTORY) {
                 chrome.runtime.sendMessage({ action: 'open-url', url });
-            } else if (type === "bang") {
-
+            } else if (type === ItemTypes.BANG) {
+                currentMode = Modes.BANG
             }
             togglePalette();
         }
@@ -109,6 +102,7 @@ document.addEventListener("keydown", (e) => {
 
 async function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
+        currentMode = Modes.NORMAL
         const searchRes = await search("")
         paletteItems.innerHTML = "";
         searchRes.forEach(item => {
