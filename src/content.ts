@@ -2,8 +2,9 @@
 import { ItemType, ItemTypes, Mode, Modes } from "./constants.ts";
 import { activeBangType } from "./types.ts";
 
-const palette = h("div", ["cp-palette", "cp-hidden"], h("input", ["cp-palette-input"]), h("div", ["cp-palette-items"]));
+const palette = h("div", ["cp-palette", "cp-hidden"], h("div", ["cp-palette-input-container"], h("span", ["cp-palette-input-mode"]), h("input", ["cp-palette-input"])), h("div", ["cp-palette-items"]));
 const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
+const paletteInputMode = palette.querySelector(".cp-palette-input-mode") as HTMLDivElement;
 paletteInput.placeholder = "Search...";
 const paletteItems = palette.querySelector(".cp-palette-items") as HTMLDivElement;
 
@@ -35,13 +36,13 @@ document.addEventListener("click", (e) => {
 
 paletteInput.addEventListener("input", async () => {
     const query = paletteInput.value;
-    paletteItems.innerHTML = "";
 
     if (currentMode === Modes.BANG) {
+        paletteItems.innerHTML = "";
         addItemToPalette(ItemTypes.HISTORY, `search ${query.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", query.trim()))
     } else {
         const searchRes = await search(query)
-
+        paletteItems.innerHTML = "";
         searchRes.forEach(item => {
             if (item.type === ItemTypes.BANG) {
                 addItemToPalette(item.type, item.title, item.url, item.id, item.shorthand)
@@ -136,6 +137,8 @@ async function togglePalette() {
 
 function bangMode(title: string, shorthand: string, url: string) {
     currentMode = Modes.BANG
+    paletteInputMode.innerText = title;
+    paletteInputMode.style.display = "inline"
     activeBang = {
         shorthand, title, url
     }
@@ -147,6 +150,8 @@ function bangMode(title: string, shorthand: string, url: string) {
 
 async function normalMode() {
     currentMode = Modes.NORMAL
+    paletteInputMode.innerText = ""
+    paletteInputMode.style.display = "none"
     activeBang = null;
     activeIndex = -1;
     const searchRes = await search("")
