@@ -1,5 +1,9 @@
 const bangsFormEl = document.getElementById("bang-form")
 const bangsListEl = document.getElementById("bangs-list")
+const searchFormEl = document.getElementById("search-form")
+const customEnginesListEl = document.getElementById("custom-engines-list")
+// const searchEngineSelectEl = document.getElementById("search-engine")
+
 const regex = new RegExp(
     "^[a-zA-Z][a-zA-Z0-9+.-]*:\\/\\/[^\\/\\s]+.*%s.*$"
 );
@@ -8,6 +12,12 @@ interface bang {
     title: string,
     shorthand: string;
     url: string,
+}
+
+interface searchEngine {
+    title: string;
+    url: string;
+    id: number;
 }
 
 bangsFormEl?.addEventListener('submit', async e => {
@@ -40,6 +50,57 @@ bangsFormEl?.addEventListener('submit', async e => {
     shortHandInput.value = "";
 
 })
+
+searchFormEl?.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const nameInput = (searchFormEl.querySelector('input#search-name-input') as HTMLInputElement);
+    const urlInput = (searchFormEl.querySelector('input#search-url-input') as HTMLInputElement);
+
+    if (!regex.test(urlInput.value.trim())) {
+        alert("something's wrong with the uri, try again after fixing it")
+        return;
+    }
+
+    const id = await addSearchEngine(nameInput.value, urlInput.value)
+    customEnginesListEl?.prepend(createSearchEngineEl(nameInput.value, urlInput.value, id))
+})
+
+async function getAllSearchEngines() {
+    const { searchEngines } = await chrome.storage.local.get("searchEngines")
+    return searchEngines as searchEngine[]
+}
+
+async function addSearchEngine(name: string, url: string) {
+    const searchEngines = await getAllSearchEngines();
+    const id = Date.now()
+    const searchEngine: searchEngine = { title: name.trim(), url: url.trim(), id }
+    const newSearchEngines = [searchEngine, ...searchEngines]
+    await chrome.storage.local.set({ "searchEngines": newSearchEngines })
+    return id;
+}
+
+function createSearchEngineEl(name: string, url: string, id: number) {
+    const searchItemEl = h("div", ["search-item", "item"]);
+    const searchContentEl = h("div", ["search-content", "item-content"]);
+    const searchNameEl = h("span", ["search-name", "item-name"], document.createTextNode(`${name.trim()}`))
+    const searchUrlEl = h("span", ["search-urll", "item-url"], document.createTextNode(url.trim()));
+    const searchDeleteBtnEl = h("button", ["search-delete-btn", "item-delete-btn"], document.createTextNode("delete"))
+    searchDeleteBtnEl.addEventListener("click", e => {
+        e.preventDefault();
+        deleteSearchEngine(id);
+        searchItemEl.remove();
+    })
+    searchContentEl.append(searchNameEl, searchUrlEl)
+    searchItemEl.append(searchContentEl, searchDeleteBtnEl)
+    return searchItemEl
+}
+
+async function deleteSearchEngine(id: number) {
+    let searchEngines = await getAllSearchEngines();
+    searchEngines = searchEngines.filter(e => e.id != id)
+    await chrome.storage.local.set( { searchEngines } )
+}
 
 async function doesBangExist(shorthand: string) {
     const bangs = await getAllBangs();
@@ -94,5 +155,8 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
 (async () => {
     (await getAllBangs()).forEach(bang => {
         bangsListEl?.prepend(createBangEl(bang.title, bang.shorthand, bang.url))
+    });
+    (await getAllSearchEngines()).forEach(searchEngine => {
+        customEnginesListEl?.prepend(createSearchEngineEl(searchEngine.title, searchEngine.url, searchEngine.id))
     })
 })()

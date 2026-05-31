@@ -195,12 +195,12 @@ async function init() {
       bangs: []
     })
   }
-  // const { searchEngine } = await chrome.storage.local.get("searchEngine")
-  // if (!searchEngine) {
-  //   await chrome.storage.local.set({
-  //     searchEngine: "Google"
-  //   })
-  // }
+  const { searchEngines } = await chrome.storage.local.get("searchEngines")
+  if (!searchEngines) {
+    await chrome.storage.local.set({
+      searchEngines: []
+    })
+  }
   rebuildIndex();
 }
 
