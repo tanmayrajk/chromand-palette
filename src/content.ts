@@ -3,7 +3,15 @@ import { ItemType, ItemTypes, Mode, Modes } from "./constants.ts";
 import { activeBangType } from "./types.ts";
 
 const host = h("chromand-palette-host")
-host.style.all = "initial"
+host.style.cssText = `
+    all: initial;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2147483647;
+`;
 host.id = "cp-host";
 
 const shadow = host.attachShadow({ mode: "open" })

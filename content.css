@@ -14,12 +14,11 @@
     position: fixed;
     top: 35%;
     left: 50%;
-    transform: translateX(50%);
+    transform: translateX(-50%);
     background-color: var(--palette-bg);
     padding: 5px;
     color: white;
     z-index: 2147483647;
-    inset: auto;
     width: 670px;
     display:flex;
     flex-direction: column;
