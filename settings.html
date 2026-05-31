@@ -14,10 +14,25 @@
         <h1>chromand palette</h1>
         <p>hi lol this is the options page for the extension</p>
     </section>
-    <!-- <section>
-        <h2>general</h2>
-        <span>open with <input type=""></span>
-    </section> -->
+    <section>
+        <h2>search engine</h2>
+        <br>
+        <p>choose your favourite search engine here:</p>
+        <select id="search-engine">
+            <option value="google">google</option>
+            <option value="hi lol">hi lol</option>
+        </select>
+        <br><br><br>
+        <p>or add a new one:</p>
+        <form id="search-form">
+            <label for="search-name-input">search engine name</label>
+            <input id="search-name-input" type="text" placeholder="eg. duckduckgo" required>
+            <label for="search-url-input">search engine url</label>
+            <input id="search-url-input" type="url" placeholder="eg. https://duckduckgo.com/?q=%s" required>
+            <button class="form-button">add search engine</button>
+        </form>
+        <div id="custom-engines-list" class="list"></div>
+    </section>
     <section>
         <h2>bangs</h2>
         <p>bangs are ways to search stuff up in websites faster. activate bangs for a website by pressing tab on its
@@ -33,9 +48,9 @@
             <input id="bang-shorthand-input" type="text" placeholder="eg. yt" required>
             <label for="bang-url-input">bang url</label>
             <input id="bang-url-input" type="url" placeholder="eg. https://www.youtube.com/results?search_query=%s" required>
-            <button>add bangs</button>
+            <button class="form-button">add bangs</button>
         </form>
-        <div id="bangs-list"></div>
+        <div id="bangs-list" class="list"></div>
     </section>
 </body>
 

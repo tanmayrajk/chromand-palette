@@ -8,7 +8,6 @@ interface bang {
     title: string,
     shorthand: string;
     url: string,
-    timeCreated: number
 }
 
 bangsFormEl?.addEventListener('submit', async e => {
@@ -55,7 +54,7 @@ async function getAllBangs() {
 
 async function addBang(name: string, shorthand: string, url: string) {
     const bangs = await getAllBangs();
-    const bang = { title: name.trim(), shorthand: shorthand.trim(), url: url.trim(), timeCreated: Date.now() }
+    const bang = { title: name.trim(), shorthand: shorthand.trim(), url: url.trim() }
     const newBangs = [bang, ...bangs]
     await chrome.storage.local.set({ "bangs": newBangs })
 }
@@ -69,11 +68,11 @@ async function deleteBang(shorthand: string) {
 }
 
 function createBangEl(name: string, shorthand: string, url: string) {
-    const bangItemEl = h("div", ["bang-item"])
-    const bangContentEl = h("div", ["bang-content"])
-    const bangNameEl = h("span", ["bang-name"], document.createTextNode(`${name.trim()} (${shorthand.trim()})`))
-    const bangUrlEl = h("span", ["bang-url"], document.createTextNode(url.trim()))
-    const bangDeleteBtnEl = h("button", ["bang-delete-btn"], document.createTextNode("delete"))
+    const bangItemEl = h("div", ["bang-item", "item"])
+    const bangContentEl = h("div", ["bang-content", "item-content"])
+    const bangNameEl = h("span", ["bang-name", "item-name"], document.createTextNode(`${name.trim()} (${shorthand.trim()})`))
+    const bangUrlEl = h("span", ["bang-url", "item-url"], document.createTextNode(url.trim()))
+    const bangDeleteBtnEl = h("button", ["bang-delete-btn", "item-delete-btn"], document.createTextNode("delete"))
     bangDeleteBtnEl.addEventListener("click", e => {
         e.preventDefault()
         deleteBang(shorthand.trim())
@@ -93,7 +92,7 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
 
 
 (async () => {
-    ((await getAllBangs()).sort((a, b) => b.timeCreated - a.timeCreated)).forEach(bang => {
+    (await getAllBangs()).forEach(bang => {
         bangsListEl?.prepend(createBangEl(bang.title, bang.shorthand, bang.url))
     })
 })()

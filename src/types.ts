@@ -19,7 +19,6 @@ export interface bangItem {
   title: string;
   shorthand: string;
   url: string;
-  timeCreated: number;
   type: ItemType
 }
 

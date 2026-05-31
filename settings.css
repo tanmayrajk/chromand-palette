@@ -1,3 +1,35 @@
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Regular.woff2) format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Medium.woff2) format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-SemiBold.woff2) format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Bold.woff2) format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
     padding: 0;
     margin: 0;
@@ -9,13 +41,14 @@ body {
     background-color: #232525;
     color: #eeeeee;
     max-width: 50%;
+    font-family: 'Inter';
 }
 
 section {
     padding-bottom: 20px;
 }
 
-#bang-form {
+form {
     display: flex;
     flex-direction: column;
     max-width: 50%;
@@ -42,7 +75,7 @@ label {
     font-weight: 500;
 }
 
-#bang-form button {
+.form-button {
     width: fit-content;
     background-color: #d4dada;
     outline: none;
@@ -54,13 +87,13 @@ label {
     transition: 100ms;
 }
 
-#bang-form button:hover {
+.form-button:hover {
     cursor: pointer;
     background-color: #e2e9e9;
     padding: 10px 13px;
 }
 
-#bang-form button:focus {
+.form-button:focus {
     background-color: #e2e9e9;
     padding: 10px 13px;
 }
@@ -76,10 +109,6 @@ input:hover {
 input:focus {
     background-color: #4c4e4e;
     padding: 10px 13px;
-}
-
-button {
-    padding: 3px 5px;
 }
 
 h1, h2 {
@@ -98,23 +127,23 @@ p {
     font-size: medium;
 }
 
-#bangs-list {
+.list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.bang-item {
+.item {
     display: flex;
     align-items: center;
     background-color: #1a1c1c;
-    max-width: 60%;
+    max-width: 50%;
     padding: 13px 16px;
     border-radius: 7px;
     justify-content: space-between;
 }
 
-.bang-content {
+.item-content {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -122,20 +151,20 @@ p {
     transition: 100ms;
 }
 
-.bang-item:hover .bang-content {
+.item:hover .content {
     min-width: auto;
 }
 
-.bang-item:hover .bang-url {
+.item:hover .item-url {
     white-space: normal;
 }
 
-.bang-name {
+.item-name {
     font-size: medium;
     color: #eeeeee;
 }
 
-.bang-url {
+.item-url {
     font-size: small;
     font-weight: 600;
     color: #b0b4b4;
@@ -145,7 +174,7 @@ p {
     /* width: 95%; */
 }
 
-.bang-delete-btn {
+.item-delete-btn {
     background-color: #353737;
     outline: none;
     border: 0;
@@ -157,7 +186,32 @@ p {
     border-radius: 7px;
 }
 
-.bang-delete-btn:hover {
+.item-delete-btn:hover {
     padding: 10px 13px;
     cursor: pointer;
+}
+
+select {
+    margin-top: 7px;
+    padding: 10px 12px 10px 15px;
+    width: 50%;
+    border-radius: 7px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #353737;
+    color: #d4dada;
+    font-weight: 600;
+    transition: 100ms;
+    outline: 0;
+    border: 2px solid #ffffff00;
+    transition: 100ms;
+
+    background-image: url("arrow.svg");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+select:active {
+    border: 2px solid #4c4e4e;
 }

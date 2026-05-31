@@ -27,10 +27,9 @@ let lastQuery = "";
 
 (async () => {
     await shadowStylesInit()
+    shadow.appendChild(palette)
+    document.documentElement.appendChild(host)
 })()
-
-shadow.appendChild(palette)
-document.documentElement.appendChild(host)
 
 let activeIndex = -1;
 
@@ -114,9 +113,11 @@ paletteInput.addEventListener("input", async () => {
 
     if (currentMode === Modes.BANG) {
         paletteItems.innerHTML = "";
-        addItemToPalette(ItemTypes.HISTORY, `search ${query.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", query.trim()))
+        console.log(encodeURI(query.trim()))
+        addItemToPalette(ItemTypes.HISTORY, `search ${query.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", encodeURI(query.trim())))
     } else {
         const searchRes = await search(query)
+        console.log(searchRes)
         paletteItems.innerHTML = "";
         searchRes.forEach(item => {
             if (item.type === ItemTypes.BANG) {
