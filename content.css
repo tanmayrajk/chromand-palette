@@ -1,17 +1,20 @@
 :host {
-    --palette-bg: #1d1e1e;
+    --palette-bg: #111111;
     --input-bg: #1d1e1e;
     --input-text: #fefefe;
     --input-mode-bg: #203232;
-    --palette-item-title: #fefefe;
-    --palette-item-desc: #cecece;
+    --palette-item-title: #cbcbcb;
+    --palette-item-desc: #aaaaaa;
+    --palette-item-select: #232323;
+    --palette-item-button: #dbdcde;
+    --palette-item-button-text: #232323;
 }
 
 .cp-palette {
     position: fixed;
     top: 35%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(50%);
     background-color: var(--palette-bg);
     padding: 5px;
     color: white;
@@ -32,6 +35,8 @@
     display: flex;
     align-items: center;
     margin-bottom: 5px;
+    background-color: var(--input-bg);
+    border-radius: 7px 0px 0px 7px;
 }
 
 .cp-palette-input {
@@ -103,12 +108,12 @@
 
 .cp-active {
     border-radius: 7px;
-    background-color: #4F5151;
+    background-color: var(--palette-item-select);
 }
 
 .cp-switch-to-tab {
-    background-color: #eeeeee;
-    color: #3c3e3e;
+    background-color: var(--palette-item-button);
+    color: var(--palette-item-button-text);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -123,4 +128,5 @@
     width: 20px;
     margin-right: 5px;
     border-radius: 7px;
+    opacity: 0.9;
 }

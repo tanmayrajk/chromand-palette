@@ -2,7 +2,8 @@
 import { ItemType, ItemTypes, Mode, Modes } from "./constants.ts";
 import { activeBangType } from "./types.ts";
 
-const host = h("div")
+const host = h("chromand-palette-host")
+host.style.all = "initial"
 host.id = "cp-host";
 
 const shadow = host.attachShadow({ mode: "open" })
