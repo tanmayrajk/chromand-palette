@@ -192,20 +192,20 @@ p {
 }
 
 select {
-    margin-top: 7px;
     padding: 10px 12px 10px 15px;
-    width: 50%;
+    width: 100%;
     border-radius: 7px;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-color: #353737;
+    background-color: #404242;
     color: #d4dada;
-    font-weight: 600;
+    font-weight: 500;
     transition: 100ms;
     outline: 0;
     border: 2px solid #ffffff00;
     transition: 100ms;
+    font-size: medium;
 
     background-image: url("arrow.svg");
     background-repeat: no-repeat;
@@ -214,4 +214,41 @@ select {
 
 select:active {
     border: 2px solid #4c4e4e;
+}
+
+#search-engine-container {
+    margin-top: 7px;
+    border-radius: 7px;
+    width: 50%;
+    background-color: #353737;
+}
+
+#search-engine-info {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#search-engine-url {
+    font-weight: 600;
+    font-size: small;
+    color: #b0b4b4;
+}
+
+#search-engine-delete-btn {
+    background-color: #232525;
+    outline: none;
+    border: 0;
+    padding: 7px 10px;
+    color: #b0b4b4;
+    cursor: pointer;
+    transition: 100ms;
+    font-weight: 600;
+    border-radius: 7px;
+}
+
+#search-engine-delete-btn:hover {
+    padding: 10px 13px;
+    cursor: pointer;
 }

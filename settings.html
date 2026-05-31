@@ -18,11 +18,16 @@
         <h2>search engine</h2>
         <br>
         <p>choose your favourite search engine here:</p>
-        <select id="search-engine">
-            <!-- <option value="google">google</option>
-            <option value="hi lol">hi lol</option> -->
-        </select>
-        <br><br><br>
+        <div id="search-engine-container">
+            <select id="search-engine">
+                <option value="0">no search engine</option>
+            </select>
+            <div id="search-engine-info">
+                <span id="search-engine-url">https://duckduckgo.com/%s</span>
+                <button id="search-engine-delete-btn">delete</button>
+            </div>
+        </div>
+        <br><br>
         <p>or add a new one:</p>
         <form id="search-form">
             <label for="search-name-input">search engine name</label>
