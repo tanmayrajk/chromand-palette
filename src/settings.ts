@@ -23,8 +23,8 @@ interface searchEngine {
 
 searchEngineDeleteBtn.addEventListener("click", e => {
     deleteSearchEngine(parseInt(searchEngineSelectEl.value))
-    searchEngineSelectEl.value = "0";
     searchEngineSelectEl.querySelector(`[data-id="${parseInt(searchEngineSelectEl.value)}"]`)?.remove();
+    searchEngineSelectEl.value = "0";
 })
 
 bangsFormEl?.addEventListener('submit', async e => {
@@ -71,13 +71,20 @@ searchFormEl?.addEventListener('submit', async e => {
 
     const id = await addSearchEngine(nameInput.value, urlInput.value)
     searchEngineSelectEl?.prepend(createSearchEngineEl(nameInput.value, urlInput.value, id))
+
+    nameInput.value = "";
+    urlInput.value = "";
 })
 
 searchEngineSelectEl?.addEventListener("change", (e) => {
     const id = (e.target as HTMLSelectElement).value
-    const selectedOption = searchEngineSelectEl.querySelector(`[data-id="${id}"]`) as HTMLOptionElement;
+    const selectedOption = searchEngineSelectEl.querySelector(`[data-id="${id}"]`) as HTMLOptionElement | null;
     const urlEl = searchEngineInfoEl.querySelector("span#search-engine-url") as HTMLSpanElement;
-    urlEl.innerText = selectedOption.dataset.url || "no search engine selected";
+    if (!selectedOption) {
+        urlEl.innerText = "no search engine selected";
+        return
+    }
+    urlEl.innerText = selectedOption.dataset.url!;
 })
 
 async function getAllSearchEngines() {
@@ -103,18 +110,6 @@ function createSearchEngineEl(name: string, url: string, id: number) {
     searchOptionEl.dataset.url = url;
     return searchOptionEl;
 }
-
-// function setSearchEngineInfoValue(id: number, url: string) {
-
-//     const urlEl = searchEngineInfoEl.querySelector("span#search-engine-url") as HTMLSpanElement;
-//     const deleteBtn = searchEngineInfoEl.querySelector("button#search-engine-delete-btn") as HTMLButtonElement;
-//     urlEl.innerText = url;
-//     deleteBtn?.addEventListener("click", e => {
-//         deleteSearchEngine(id)
-//         searchEngineSelectEl.value = "0";
-//         searchEngineSelectEl.querySelector(`[data-id="${id}"]`)?.remove();
-//     })
-// }
 
 async function deleteSearchEngine(id: number) {
     let searchEngines = await getAllSearchEngines();
@@ -182,3 +177,10 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
         searchEngineSelectEl?.prepend(createSearchEngineEl(searchEngine.title, searchEngine.url, searchEngine.id))
     });
 })()
+
+
+const id = parseInt(searchEngineSelectEl.value)
+const urlEl = searchEngineInfoEl.querySelector("span#search-engine-url") as HTMLSpanElement;
+if (id === 0) {
+    urlEl.innerText = "no search engine selected";
+}
