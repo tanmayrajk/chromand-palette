@@ -69,7 +69,13 @@
     flex-direction: column;
     background-color: transparent;
     max-height: 300px;
-    overflow-y: scroll;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.cp-palette-items::-webkit-scrollbar {
+    display: none;
 }
 
 .cp-item {
