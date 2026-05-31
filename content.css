@@ -1,12 +1,59 @@
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Regular.woff2) format('woff2'),
+        url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Regular.woff) format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Medium.woff2) format('woff2'),
+        url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Medium.woff) format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-SemiBold.woff2) format('woff2'),
+        url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-SemiBold.woff) format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Bold.woff2) format('woff2'),
+        url(chrome-extension://nbdcekgpcnlpjjmfljgalbcidpjbamlh/fonts/Inter28pt-Bold.woff) format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --palette-bg: #1d1e1e;
+    --input-bg: #1d1e1e;
+    --input-text: #fefefe;
+    --input-mode-bg: #203232;
+    --palette-item-title: #fefefe;
+    --palette-item-desc: #cecece;
+}
+
 .cp-palette {
     position: fixed;
     top: 35%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #3c3e3e;
+    background-color: var(--palette-bg);
     padding: 5px;
     color: white;
-    z-index: 6767;
+    z-index: 2147483647;
+    inset: auto;
     width: 670px;
     display:flex;
     flex-direction: column;
@@ -25,25 +72,29 @@
 }
 
 .cp-palette-input {
+    font-family: 'Inter';
     font-size: medium;
+    font-weight: 500;
     width: 100%;
     border: 0;
-    padding: 10px 10px 10px 15px;
+    padding: 10px;
     outline: none;
-    background-color: #3c3e3e;
+    background-color: var(--input-bg);
     border-radius: 7px;
-    color: white;
+    color: var(--input-text);
     opacity: 1;
 }
 
 .cp-palette-input-mode {
+    font-family: 'Inter';
     font-size: smaller;
     max-height: fit-content;
-    font-weight: 500;
-    background-color: #4F5151;
+    font-weight: 600;
+    background-color: var(--input-mode-bg);
     padding: 5px 7px;
     border-radius: 7px;
     margin-left: 7px;
+    /* margin-right: 12px; */
 }
 
 .cp-palette-items {
@@ -55,10 +106,10 @@
 }
 
 .cp-item {
+    font-family: 'Inter';
     padding: 7px 15px;
-    color: white;
     background-color: transparent;
-    opacity: 1;
+    /* opacity: 1; */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -70,6 +121,7 @@
 }
 
 .cp-item-title {
+    color: var(--palette-item-title);
     font-size: medium;
     font-weight: 500;
     overflow: hidden;
@@ -78,8 +130,9 @@
 }
 
 .cp-item-desc {
+    font-weight: 600;
     font-size: small;
-    color: #b0b0b0;
+    color: var(--palette-item-desc);
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -104,7 +157,7 @@
 }
 
 .cp-item-favicon {
-    width: 30px;
+    width: 20px;
     margin-right: 5px;
     border-radius: 7px;
 }

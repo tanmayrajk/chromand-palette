@@ -2,18 +2,78 @@
 import { ItemType, ItemTypes, Mode, Modes } from "./constants.ts";
 import { activeBangType } from "./types.ts";
 
+const host = h("div")
+host.id = "cp-host";
+
+const shadow = host.attachShadow({ mode: "open" })
+
 const palette = h("div", ["cp-palette", "cp-hidden"], h("div", ["cp-palette-input-container"], h("span", ["cp-palette-input-mode"]), h("input", ["cp-palette-input"])), h("div", ["cp-palette-items"]));
 const paletteInput = palette.querySelector(".cp-palette-input") as HTMLInputElement;
 const paletteInputMode = palette.querySelector(".cp-palette-input-mode") as HTMLDivElement;
 paletteInput.placeholder = "Search...";
 const paletteItems = palette.querySelector(".cp-palette-items") as HTMLDivElement;
 
-document.body.appendChild(palette);
+shadow.appendChild(palette)
+document.documentElement.appendChild(host)
 
 let activeIndex = -1;
 
 let currentMode: Mode = Modes.NORMAL
 let activeBang: activeBangType | null =  null
+
+const regularWoff = chrome.runtime.getURL("fonts/Inter28pt-Regular.woff");
+const regularWoff2 = chrome.runtime.getURL("fonts/Inter28pt-Regular.woff2");
+const mediumWoff = chrome.runtime.getURL("fonts/Inter28pt-Medium.woff");
+const mediumWoff2 = chrome.runtime.getURL("fonts/Inter28pt-Medium.woff2");
+const semiBoldWoff = chrome.runtime.getURL("fonts/Inter28pt-SemiBold.woff");
+const semiBoldWoff2 = chrome.runtime.getURL("fonts/Inter28pt-SemiBold.woff2");
+const boldWoff = chrome.runtime.getURL("fonts/Inter28pt-Bold.woff");
+const boldWoff2 = chrome.runtime.getURL("fonts/Inter28pt-Bold.woff2");
+
+const style = document.createElement('style');
+style.textContent = `
+@font-face {
+    font-family: 'Inter';
+    src: url("${regularWoff2}") format('woff2'),
+        url("${regularWoff}") format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url("${mediumWoff2}") format('woff2'),
+        url("${mediumWoff}") format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url("${semiBoldWoff2}") format('woff2'),
+        url("${semiBoldWoff}") format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url("${boldWoff2}") format('woff2'),
+        url("${boldWoff}") format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}`
+
+const link = document.createElement("link");
+link.rel = "stylesheet";
+link.href = chrome.runtime.getURL("content.css")
+
+shadow.appendChild(style);
+shadow.appendChild(link)
 
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === 'toggle-palette') {
@@ -69,6 +129,7 @@ paletteInput.addEventListener("input", async () => {
 document.addEventListener("keydown", (e) => {
     if (palette.classList.contains("cp-hidden")) return;
     const items = Array.from(paletteItems.children) as HTMLDivElement[];
+    if (items.length === 0) return;
     if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
         e.preventDefault()
         activeIndex = (activeIndex + 1) % items.length;
