@@ -23,6 +23,8 @@ const paletteInputMode = palette.querySelector(".cp-palette-input-mode") as HTML
 paletteInput.placeholder = "Search...";
 const paletteItems = palette.querySelector(".cp-palette-items") as HTMLDivElement;
 
+let lastQuery = "";
+
 (async () => {
     await shadowStylesInit()
 })()
@@ -142,12 +144,14 @@ paletteInput.addEventListener("input", async () => {
 async function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
         host.style.pointerEvents = "auto";
-        await normalMode()
+        await normalMode(lastQuery)
         palette.classList.remove("cp-hidden");
+        paletteInput.select()
         paletteInput.focus();
     } else {
         host.style.pointerEvents = "none";
         palette.classList.add("cp-hidden");
+        lastQuery = paletteInput.value.trim();
         paletteInput.value = "";
         paletteItems.innerHTML = "";
         activeIndex = -1;
@@ -166,21 +170,21 @@ function bangMode(title: string, shorthand: string, url: string) {
     paletteItems.innerHTML = "";
     paletteInput.value = "";
     addItemToPalette(ItemTypes.HISTORY, `Search ${paletteInput.value.trim()} on ${activeBang?.title}`, activeBang?.url.replace("%s", paletteInput.value.trim()))
-    console.log(Modes.BANG)
 }
 
-async function normalMode() {
+async function normalMode(query?: string) {
     currentMode = Modes.NORMAL
-    paletteInputMode.innerText = ""
+    paletteInputMode.innerText = "";
     paletteInputMode.style.display = "none"
     activeBang = null;
     activeIndex = -1;
-    const searchRes = await search("")
+    paletteInput.value = query || "";
+    const searchRes = await search(paletteInput.value)
+
     paletteItems.innerHTML = "";
     searchRes.forEach(item => {
         addItemToPalette(item.type, item.title, item.url, item.id)
     })
-    console.log(Modes.NORMAL)
 }
 
 function addItemToPalette(type: ItemType, title: string, url?: string, id?: number, shorthand?: string) {
