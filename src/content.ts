@@ -11,6 +11,7 @@ host.style.cssText = `
     width: 100vw;
     height: 100vh;
     z-index: 2147483647;
+    pointer-events: none;
 `;
 host.id = "cp-host";
 
@@ -40,11 +41,64 @@ chrome.runtime.onMessage.addListener((msg) => {
     }
 })
 
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !palette.classList.contains("cp-hidden")) {
+window.addEventListener("keydown", e => {
+    if (palette.classList.contains("cp-hidden")) return;
+    else e.stopImmediatePropagation();
+
+    if (e.key === "Escape") {
         togglePalette();
     }
-});
+
+    const items = Array.from(paletteItems.children) as HTMLDivElement[];
+    if (items.length === 0) return;
+    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
+        e.preventDefault()
+        activeIndex = (activeIndex + 1) % items.length;
+    }
+    else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
+        e.preventDefault()
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+    }
+
+    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey) || e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
+        items.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
+        items[activeIndex]?.scrollIntoView({
+            block: "nearest",
+        });
+        if (!activeBang) {
+            paletteInput.value = items[activeIndex]?.dataset.url || "";
+        }
+        paletteInput.focus();
+    }
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        const selectedItem = items[activeIndex];
+        if (selectedItem) {
+            const type = selectedItem.dataset.type
+            const url = selectedItem.dataset.url;
+            if (type === ItemTypes.TAB) {
+                const id = parseInt(selectedItem.dataset.id!);
+                chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
+                togglePalette();
+            } else if (type === ItemTypes.HISTORY) {
+                if (e.shiftKey) {
+                    chrome.runtime.sendMessage({ action: 'open-url-in-current-tab', url });
+                } else {
+                    chrome.runtime.sendMessage({ action: 'open-url-in-new-tab', url });
+                }
+                togglePalette();
+            } else if (type === ItemTypes.BANG) {
+                bangMode(selectedItem.dataset.title!, selectedItem.dataset.shorthand!, selectedItem.dataset.url!)
+            }
+        }
+    }
+
+    if (e.key === "Backspace" && currentMode === Modes.BANG && paletteInput.value === "") {
+        normalMode();
+    }
+
+}, true);
 
 document.addEventListener("click", (e) => {
     const target = e.target as Node;
@@ -85,71 +139,14 @@ paletteInput.addEventListener("input", async () => {
     }
 })
 
-document.addEventListener("keydown", (e) => {
-    if (palette.classList.contains("cp-hidden")) return;
-    const items = Array.from(paletteItems.children) as HTMLDivElement[];
-    if (items.length === 0) return;
-    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
-        e.preventDefault()
-        activeIndex = (activeIndex + 1) % items.length;
-    }
-    else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
-        e.preventDefault()
-        activeIndex = (activeIndex - 1 + items.length) % items.length;
-    }
-
-    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey) || e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
-        items.forEach((s, i) => s.classList.toggle("cp-active", i === activeIndex));
-        items[activeIndex]?.scrollIntoView({
-            block: "nearest",
-        });
-        if (!activeBang) {
-            paletteInput.value = items[activeIndex]?.dataset.url || "";
-        }
-        paletteInput.focus();
-    }
-})
-
-document.addEventListener("keydown", (e) => {
-    if (palette.classList.contains("cp-hidden")) return;
-    if (e.key === "Enter") {
-        e.preventDefault();
-        const items = Array.from(paletteItems.children) as HTMLDivElement[];
-        const selectedItem = items[activeIndex];
-        if (selectedItem) {
-            const type = selectedItem.dataset.type
-            const url = selectedItem.dataset.url;
-            if (type === ItemTypes.TAB) {
-                const id = parseInt(selectedItem.dataset.id!);
-                chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
-                togglePalette();
-            } else if (type === ItemTypes.HISTORY) {
-                if (e.shiftKey) {
-                    chrome.runtime.sendMessage({ action: 'open-url-in-current-tab', url });
-                } else {
-                    chrome.runtime.sendMessage({ action: 'open-url-in-new-tab', url });
-                }
-                togglePalette();
-            } else if (type === ItemTypes.BANG) {
-                bangMode(selectedItem.dataset.title!, selectedItem.dataset.shorthand!, selectedItem.dataset.url!)
-            }
-        }
-    }
-})
-
-document.addEventListener("keydown", (e) => {
-    if (palette.classList.contains("cp-hidden")) return;
-    if (e.key === "Backspace" && currentMode === Modes.BANG && paletteInput.value === "") {
-        normalMode();
-    }
-})
-
 async function togglePalette() {
     if (palette.classList.contains("cp-hidden")) {
+        host.style.pointerEvents = "auto";
         await normalMode()
         palette.classList.remove("cp-hidden");
         paletteInput.focus();
     } else {
+        host.style.pointerEvents = "none";
         palette.classList.add("cp-hidden");
         paletteInput.value = "";
         paletteItems.innerHTML = "";
