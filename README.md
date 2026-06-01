@@ -9,3 +9,7 @@ i really like the zen command's palette so this is a heavily inspired version i 
 ## how to install
 
 download the repo from github and drag it onto your browser's extension page (make sure developer mode is on).
+
+## license
+
+mit do whwatever you want.
