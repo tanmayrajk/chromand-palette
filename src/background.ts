@@ -1,6 +1,6 @@
 /// <reference types="npm:@types/chrome" />
 import Fuse from "fuse.js";
-import { historyItem, tabItem, bangItem, searchItem } from "./types.ts";
+import { historyItem, tabItem, bangItem, searchItem, searchEngine } from "./types.ts";
 import { ItemTypes } from "./constants.ts";
 
 let historyMap = new Map<string, historyItem>();
@@ -167,6 +167,16 @@ async function searchIndex(
     console.log(bangsRes)
     finalRes = [...bangsRes, ...finalRes]
   }
+  const { searchEngine }: { searchEngine: searchEngine } = await chrome.storage.local.get("searchEngine")
+  if (searchEngine.id != 0 && query != "") {
+    const url = searchEngine.url.replace("%s", encodeURI(query))
+    const item = { title: `search ${query} on ${searchEngine.title}`, url, type: ItemTypes.SEARCH }
+    if (query.length > 2) {
+      finalRes = [item, ...finalRes]
+    } else {
+      finalRes.splice(1, 0, item)
+    }
+  }
   return finalRes
 }
 
@@ -198,15 +208,19 @@ async function init() {
   const { searchEngines } = await chrome.storage.local.get("searchEngines")
   if (!searchEngines) {
     await chrome.storage.local.set({
-      searchEngines: []
+      searchEngines: [{
+      title: "ddg",
+      url: "https://duckduckgo.com/?q=%s",
+      id: 1780275306603
+    }]
     })
   }
   const { searchEngine } = await chrome.storage.local.get("searchEngine")
   if (searchEngine === undefined) {
     await chrome.storage.local.set({ searchEngine: {
-      title: "",
-      url: "",
-      id: 0
+      title: "ddg",
+      url: "https://duckduckgo.com/?q=%s",
+      id: 1780275306603
     }})
   }
   rebuildIndex();

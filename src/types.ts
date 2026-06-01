@@ -33,3 +33,9 @@ export interface activeBangType {
     url: string,
     shorthand: string
 }
+
+export interface searchEngine {
+  title: string,
+  url: string,
+  id: number
+}

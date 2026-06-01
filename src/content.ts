@@ -198,7 +198,7 @@ function addItemToPalette(type: ItemType, title: string, url?: string, id?: numb
         itemEl.dataset.title = title;
         itemEl.dataset.url = url;
 
-        if (["tab", "history"].includes(type)) {
+        if (["tab", "history", "search"].includes(type)) {
             itemEl.getElementsByTagName("img")[0].src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`
         }
     }

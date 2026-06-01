@@ -25,6 +25,7 @@ searchEngineDeleteBtn.addEventListener("click", e => {
     deleteSearchEngine(parseInt(searchEngineSelectEl.value))
     searchEngineSelectEl.querySelector(`[data-id="${parseInt(searchEngineSelectEl.value)}"]`)?.remove();
     searchEngineSelectEl.value = "0";
+    searchEngineSelectEl.dispatchEvent(new Event("change"));
 })
 
 bangsFormEl?.addEventListener('submit', async e => {
@@ -126,7 +127,16 @@ async function deleteSearchEngine(id: number) {
     if (searchEngines.some(s => s.id === id)) {
         searchEngines = searchEngines.filter(e => e.id != id)
         await chrome.storage.local.set( { searchEngines } )
-        await chrome.storage.local.set({ searchEngine: NaN })
+        const { searchEngine }: { searchEngine: searchEngine } = await chrome.storage.local.get("searchEngine")
+        if (searchEngine.id === id) {
+            await chrome.storage.local.set({
+                searchEngine: {
+                    title: "",
+                    url: "",
+                    id: 0
+                }
+            })
+        }
     }
 }
 
