@@ -82,7 +82,7 @@ window.addEventListener("keydown", e => {
                 const id = parseInt(selectedItem.dataset.id!);
                 chrome.runtime.sendMessage({ action: 'change-tab', tabId: id });
                 togglePalette();
-            } else if (type === ItemTypes.HISTORY) {
+            } else if (type === ItemTypes.HISTORY || type === ItemTypes.SEARCH) {
                 if (e.shiftKey) {
                     chrome.runtime.sendMessage({ action: 'open-url-in-current-tab', url });
                 } else {
