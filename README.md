@@ -8,6 +8,14 @@ i really like the zen command's palette so this is a heavily inspired version i 
 
 ## how to install
 
+- download the latest version from releases
+- unzip it
+- drag the unzipped folder onto your browser's extension page (make sure developer mode is on).
+
+---
+
+## how to build
+
 - download the repo from github
 - install [deno](https://deno.com/)
 - run `deno task build` in the repo
