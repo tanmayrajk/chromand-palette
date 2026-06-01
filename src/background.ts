@@ -201,6 +201,14 @@ async function init() {
       searchEngines: []
     })
   }
+  const { searchEngine } = await chrome.storage.local.get("searchEngine")
+  if (searchEngine === undefined) {
+    await chrome.storage.local.set({ searchEngine: {
+      title: "",
+      url: "",
+      id: 0
+    }})
+  }
   rebuildIndex();
 }
 

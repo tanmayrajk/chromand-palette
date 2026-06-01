@@ -76,15 +76,25 @@ searchFormEl?.addEventListener('submit', async e => {
     urlInput.value = "";
 })
 
-searchEngineSelectEl?.addEventListener("change", (e) => {
+searchEngineSelectEl?.addEventListener("change", async (e) => {
     const id = (e.target as HTMLSelectElement).value
     const selectedOption = searchEngineSelectEl.querySelector(`[data-id="${id}"]`) as HTMLOptionElement | null;
     const urlEl = searchEngineInfoEl.querySelector("span#search-engine-url") as HTMLSpanElement;
     if (!selectedOption) {
         urlEl.innerText = "no search engine selected";
+        await chrome.storage.local.set({ searchEngine: {
+            title: "",
+            url: "",
+            id: 0
+        } })
         return
     }
     urlEl.innerText = selectedOption.dataset.url!;
+    await chrome.storage.local.set({ searchEngine: {
+        title: selectedOption.dataset.name,
+        url: selectedOption.dataset.url,
+        id: parseInt(id)
+    } })
 })
 
 async function getAllSearchEngines() {
@@ -116,6 +126,7 @@ async function deleteSearchEngine(id: number) {
     if (searchEngines.some(s => s.id === id)) {
         searchEngines = searchEngines.filter(e => e.id != id)
         await chrome.storage.local.set( { searchEngines } )
+        await chrome.storage.local.set({ searchEngine: NaN })
     }
 }
 
@@ -176,6 +187,9 @@ function h(tag: string, classNames?: string[], ...children: (HTMLElement | Text)
     (await getAllSearchEngines()).forEach(searchEngine => {
         searchEngineSelectEl?.prepend(createSearchEngineEl(searchEngine.title, searchEngine.url, searchEngine.id))
     });
+    const { searchEngine } = await chrome.storage.local.get("searchEngine");
+    searchEngineSelectEl.value = (searchEngine as searchEngine).id.toString()
+    searchEngineSelectEl.dispatchEvent(new Event("change"));
 })()
 
 
