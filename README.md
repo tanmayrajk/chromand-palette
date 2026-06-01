@@ -6,6 +6,12 @@ i really like the zen command's palette so this is a heavily inspired version i 
 
 ---
 
+## how to use
+
+`alt + k` to open the palette. `alt +k` or `esc` to close it. `tab` and `shift + tab` to navigate. add bangs and search engines in the options page of the extension. to use a bang, press `/` and start typing the shorthand of the bang, `enter` to select it and then type the value and then `enter` to search it.
+
+---
+
 ## how to install
 
 - download the latest version from releases
